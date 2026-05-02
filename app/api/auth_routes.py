@@ -30,7 +30,7 @@ MAX_FAILED_ATTEMPTS  = 5
 LOCKOUT_MINUTES      = 15
 
 
-# - Schemas ---------------------------------─
+# - Schemas ----------------------------------
 
 class RegisterRequest(BaseModel):
     email:    EmailStr
@@ -56,7 +56,7 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
 
-# - Dependency: get current user from JWT ------------------─
+# - Dependency: get current user from JWT -------------------
 
 def get_current_user(
     creds: HTTPAuthorizationCredentials = Depends(bearer),
@@ -148,7 +148,7 @@ def resend_verification(req: ForgotPasswordRequest, db: Session = Depends(get_db
     return {"message": "New verification code sent."}
 
 
-# - Login (step 1: password check → send MFA code) -------------─
+# - Login (step 1: password check → send MFA code) --------------
 
 @router.post("/login")
 def login(req: LoginRequest, db: Session = Depends(get_db)):
@@ -217,7 +217,7 @@ def verify_mfa(req: MFARequest, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer", "email": user.email}
 
 
-# - Forgot Password -----------------------------─
+# - Forgot Password ------------------------------
 
 @router.post("/forgot-password")
 def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(get_db)):
@@ -272,7 +272,7 @@ def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
     return {"message": "Password updated successfully. You can now log in."}
 
 
-# - Me (verify token + return user info) ------------------─
+# - Me (verify token + return user info) -------------------
 
 @router.get("/me")
 def get_me(current_user: User = Depends(get_current_user)):

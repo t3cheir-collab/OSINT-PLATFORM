@@ -23,7 +23,6 @@ class Settings:
     anthropic_api_key:   str = os.getenv("ANTHROPIC_API_KEY", "")
     # Shodan
     shodan_api_key:      str = os.getenv("SHODAN_API_KEY", "")
-    # PhishTank (optional — register at phishtank.org/api_register.php)
-    phishtank_api_key:   str = os.getenv("PHISHTANK_API_KEY", "")
+
 
 settings = Settings()

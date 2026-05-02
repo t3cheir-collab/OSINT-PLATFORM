@@ -10,9 +10,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes_ioc import router as ioc_router
 from app.api.web import router as web_router
 from app.api.auth_routes import router as auth_router, get_current_user
+from app.api.routes_siem import router as siem_router
 from app.database import engine
-from app.models.user import User  # noqa — registers model with Base
-import app.models.user  # ensure table creation
+from app.models.user import User       # noqa — registers model with Base
+from app.models.api_key import APIKey  # noqa — registers model with Base
+import app.models.user
+import app.models.api_key
 from app.database import Base
 
 # Create tables on startup
@@ -50,6 +53,12 @@ app.include_router(auth_router)
 # Protected routes — require valid JWT
 app.include_router(ioc_router,  dependencies=[Depends(get_current_user)])
 app.include_router(web_router)  # /web/status is public; chat+feed require auth below
+
+# SIEM integration — API key auth (machine-to-machine)
+# /siem/enrich uses X-API-Key header
+# /siem/keys management uses JWT (browser users)
+# /siem/health is public
+app.include_router(siem_router)
 
 @app.get("/health")
 async def health_check():

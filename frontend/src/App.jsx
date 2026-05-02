@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 const API_BASE = "http://127.0.0.1:8000";
@@ -1709,6 +1709,8 @@ function MainApp({ onLogout }) {
   })() : [];
 
   if (view === "report" && d) return <ReportPage ioc={ioc} iocType={detectedType} data={data} onBack={() => setView("analyze")}/>;
+  // -- SIEM PAGE -------------------------------------------------------------
+  if (view === "siem") return <SiemKeysPage onBack={() => setView("home")} />;
 
   // -- HOME PAGE --------------------------------------------------------------
   if (view === "home") return (
@@ -1755,6 +1757,11 @@ function MainApp({ onLogout }) {
             style={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 8, padding: "9px 18px", fontSize: 13, color: "#9CA3AF", cursor: "pointer", fontWeight: 700 }}>
             Home
           </button>
+          <button onClick={() => setView("siem")}
+            style={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 8, padding: "9px 18px", fontSize: 13, color: "#9CA3AF", cursor: "pointer", fontWeight: 700 }}>
+            🔌 SIEM API
+          </button>
+          
           <button onClick={onLogout}
             style={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 8, padding: "9px 18px", fontSize: 13, color: "#EF4444", cursor: "pointer", fontWeight: 700 }}>
             Log Out
@@ -2387,4 +2394,177 @@ function AuthGate({ onAuth }) {
   if (screen === "mfa")      return <MFAScreen email={mfaEmail} onAuth={onAuth} onSwitch={switchTo}/>;
   if (screen === "forgot")   return <ForgotPasswordScreen onSwitch={switchTo}/>;
   return <LoginScreen onSwitch={switchTo} onMFA={(email) => switchTo("mfa", email)}/>;
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SIEM API KEY MANAGEMENT PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+function SiemKeysPage({ onBack }) {
+  const [keys,        setKeys]        = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [creating,    setCreating]    = useState(false);
+  const [newName,     setNewName]     = useState("");
+  const [newKey,      setNewKey]      = useState(null);  // shown once after creation
+  const [error,       setError]       = useState("");
+  const [copied,      setCopied]      = useState(false);
+
+  const fetchKeys = async () => {
+    try {
+      const r = await fetch(`${API_BASE}/siem/keys`, { headers: authHeaders() });
+      if (r.ok) setKeys(await r.json());
+    } catch(e) { setError("Failed to load keys"); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchKeys(); }, []);
+
+  const createKey = async () => {
+    if (!newName.trim()) return;
+    setCreating(true); setError("");
+    try {
+      const r = await fetch(`${API_BASE}/siem/keys`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ name: newName.trim() }),
+      });
+      const d = await r.json();
+      if (!r.ok) { setError(d.detail || "Failed to create key"); return; }
+      setNewKey(d);
+      setNewName("");
+      fetchKeys();
+    } catch(e) { setError("Network error"); }
+    finally { setCreating(false); }
+  };
+
+  const revokeKey = async (id) => {
+    if (!confirm("Revoke this API key? This cannot be undone.")) return;
+    try {
+      await fetch(`${API_BASE}/siem/keys/${id}`, { method: "DELETE", headers: authHeaders() });
+      fetchKeys();
+    } catch(e) { setError("Failed to revoke key"); }
+  };
+
+  const copyKey = () => {
+    navigator.clipboard.writeText(newKey.raw_key);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const s = { fontFamily: "system-ui, sans-serif", background: "#0b0f14", minHeight: "100vh", color: "#e0eaf4" };
+
+  return (
+    <div style={s}>
+      {/* Header */}
+      <div style={{ background: "#111827", borderBottom: "1px solid #1f2937", padding: "14px 24px", display: "flex", alignItems: "center", gap: 16 }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", color: "#6B7280", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>← Back</button>
+        <div style={{ fontSize: 13, fontWeight: 800, color: "#F9FAFB", letterSpacing: "0.05em" }}>SIEM API INTEGRATION</div>
+        <div style={{ marginLeft: "auto", fontSize: 11, color: "#374151", fontFamily: "monospace" }}>POST /siem/enrich · X-API-Key header</div>
+      </div>
+
+      <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 24px" }}>
+
+        {/* Intro */}
+        <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 14, padding: "20px 24px", marginBottom: 24 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#F9FAFB", marginBottom: 8 }}>REST API Pull — SIEM Integration</div>
+          <div style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.8, marginBottom: 16 }}>
+            Generate an API key below and use it to submit IOCs programmatically from Splunk, Elastic SIEM, Microsoft Sentinel, IBM QRadar, or any REST-capable SOAR platform. Up to 10 IOCs per request, 60 requests/minute per key.
+          </div>
+          <div style={{ background: "#0d1117", borderRadius: 8, padding: "12px 16px", fontFamily: "monospace", fontSize: 12, color: "#10B981", lineHeight: 2 }}>
+            <div style={{ color: "#4B5563" }}># Example curl request</div>
+            <div>curl -X POST {API_BASE}/siem/enrich \</div>
+            <div>{"  "}-H "X-API-Key: osint_your_key_here" \</div>
+            <div>{"  "}-H "Content-Type: application/json" \</div>
+            <div>{"  "}-d '{`{"iocs": ["185.220.101.35", "44d88612fea8a8f36de82e1278abb02f"]}`}'</div>
+          </div>
+        </div>
+
+        {/* New key banner — shown once */}
+        {newKey && (
+          <div style={{ background: "#0a2e1a", border: "1px solid #065f26", borderRadius: 12, padding: "20px 24px", marginBottom: 24 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#34d399", marginBottom: 8 }}>✓ API Key Created — Copy it now</div>
+            <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 12 }}>This key will not be shown again. Store it securely in your SIEM or secrets manager.</div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <div style={{ flex: 1, background: "#111827", border: "1px solid #1f2937", borderRadius: 8, padding: "10px 14px", fontFamily: "monospace", fontSize: 13, color: "#34d399", wordBreak: "break-all" }}>
+                {newKey.raw_key}
+              </div>
+              <button onClick={copyKey} style={{ padding: "10px 18px", background: copied ? "#065f26" : "#10B981", border: "none", borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+            <button onClick={() => setNewKey(null)} style={{ marginTop: 12, background: "none", border: "none", color: "#4B5563", fontSize: 12, cursor: "pointer" }}>Dismiss</button>
+          </div>
+        )}
+
+        {/* Create new key */}
+        <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 14, padding: "20px 24px", marginBottom: 24 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#F9FAFB", marginBottom: 16 }}>Create New API Key</div>
+          {error && <div style={{ padding: "8px 12px", background: "#2d0f0f", border: "1px solid #7f1d1d", borderRadius: 8, fontSize: 13, color: "#F87171", marginBottom: 12 }}>{error}</div>}
+          <div style={{ display: "flex", gap: 10 }}>
+            <input
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              placeholder='e.g. "Splunk Production" or "QRadar Dev"'
+              onKeyDown={e => e.key === "Enter" && createKey()}
+              style={{ flex: 1, background: "#1f2937", border: "1px solid #374151", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#F9FAFB", outline: "none", fontFamily: "system-ui" }}
+            />
+            <button onClick={createKey} disabled={creating || !newName.trim()}
+              style={{ padding: "10px 24px", background: creating || !newName.trim() ? "#1f2937" : "linear-gradient(135deg,#2563EB,#3B82F6)", border: "none", borderRadius: 8, color: creating || !newName.trim() ? "#4B5563" : "#fff", fontWeight: 700, fontSize: 13, cursor: creating || !newName.trim() ? "default" : "pointer" }}>
+              {creating ? "Creating..." : "Generate Key"}
+            </button>
+          </div>
+        </div>
+
+        {/* Keys list */}
+        <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ padding: "16px 24px", borderBottom: "1px solid #1f2937", fontSize: 14, fontWeight: 700, color: "#F9FAFB" }}>
+            Active API Keys ({keys.length})
+          </div>
+          {loading ? (
+            <div style={{ padding: "32px", textAlign: "center", color: "#4B5563" }}>Loading...</div>
+          ) : keys.length === 0 ? (
+            <div style={{ padding: "32px", textAlign: "center", color: "#4B5563", fontSize: 13 }}>No API keys yet. Create one above to get started.</div>
+          ) : (
+            keys.map(k => (
+              <div key={k.id} style={{ padding: "16px 24px", borderBottom: "1px solid #111827", display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#F9FAFB", marginBottom: 4 }}>{k.name}</div>
+                  <div style={{ fontSize: 12, color: "#4B5563", fontFamily: "monospace" }}>
+                    {k.key_prefix}••••••••••••••••••••••••••
+                    <span style={{ marginLeft: 16 }}>Created {new Date(k.created_at).toLocaleDateString()}</span>
+                    {k.last_used_at && <span style={{ marginLeft: 16 }}>Last used {new Date(k.last_used_at).toLocaleDateString()}</span>}
+                    <span style={{ marginLeft: 16, color: "#3B82F6" }}>{k.requests_total} requests</span>
+                  </div>
+                </div>
+                <button onClick={() => revokeKey(k.id)}
+                  style={{ padding: "6px 14px", background: "transparent", border: "1px solid #7f1d1d", borderRadius: 6, color: "#EF4444", fontSize: 12, cursor: "pointer", fontWeight: 700 }}>
+                  Revoke
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Integration guide */}
+        <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 14, padding: "20px 24px", marginTop: 24 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#F9FAFB", marginBottom: 16 }}>SIEM Integration Examples</div>
+          {[
+            { name: "Splunk", desc: "Use REST API Input or Adaptive Response Action. POST indicators from notable events, write results to a lookup table.", color: "#3B82F6" },
+            { name: "Elastic SIEM", desc: "Use Elastic Watcher or a Custom Connector. Call on rule trigger to enrich alerts with verdict and MITRE mapping.", color: "#F59E0B" },
+            { name: "Microsoft Sentinel", desc: "Use a Logic App with HTTP action from an Automation Rule. Write enrichment results back as incident comments.", color: "#10B981" },
+            { name: "IBM QRadar", desc: "Use a Custom Action script or SOAR integration. Call this endpoint and update offense custom properties.", color: "#A78BFA" },
+          ].map(siem => (
+            <div key={siem.name} style={{ display: "flex", gap: 12, marginBottom: 12, padding: "12px 14px", background: "#0d1117", borderRadius: 8, borderLeft: `3px solid ${siem.color}` }}>
+              <div style={{ minWidth: 120, fontWeight: 700, color: siem.color, fontSize: 13 }}>{siem.name}</div>
+              <div style={{ fontSize: 13, color: "#6B7280" }}>{siem.desc}</div>
+            </div>
+          ))}
+          <div style={{ marginTop: 12, fontSize: 12, color: "#374151" }}>
+            Response schema: verdict (malicious/suspicious/benign) · score (0-100) · confidence (%) · mitre_techniques ([T1566, ...]) · per-source scores
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
 }

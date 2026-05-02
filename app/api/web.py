@@ -207,7 +207,7 @@ def _parse_object(text: str, fallback_id: str) -> Optional[dict]:
         return None
 
 
-# - Bulk endpoint: one batched call for all 6 ----------------─
+# - Bulk endpoint: one batched call for all 6 -----------------
 
 @router.get("/threat-feed")
 async def threat_feed(force: bool = False) -> Dict[str, Any]:
@@ -272,7 +272,7 @@ async def threat_feed(force: bool = False) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# - Single-category endpoint: reuse cache, or fetch just that one ------─
+# - Single-category endpoint: reuse cache, or fetch just that one -------
 
 @router.get("/threat-feed/category/{category_id}")
 async def threat_feed_category(category_id: str) -> Dict[str, Any]:
@@ -379,7 +379,7 @@ async def ioc_chat(req: ChatRequest) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# - Dashboard summary ----------------------------─
+# - Dashboard summary -----------------------------
 
 @router.get("/summary")
 async def dashboard_summary() -> Dict[str, Any]:
