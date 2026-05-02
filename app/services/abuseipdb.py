@@ -4,7 +4,7 @@ from app.config import settings
 
 async def abuseipdb_lookup(ip: str):
     url = "https://api.abuseipdb.com/api/v2/check"
-    # Read key fresh — NOT at module import time
+    # Read key fresh - NOT at module import time
     headers = {
         "Key": settings.abuseipdb_api_key,
         "Accept": "application/json",

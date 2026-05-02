@@ -17,7 +17,7 @@ APP_URL    = os.getenv("APP_URL", "http://localhost:5173")
 def _send(to: str, subject: str, html: str) -> bool:
     """Send email via Gmail SMTP TLS. Returns True on success."""
     if not GMAIL_USER or not GMAIL_PASS:
-        logger.warning("MAIL_USERNAME / MAIL_PASSWORD not set — email not sent")
+        logger.warning("MAIL_USERNAME / MAIL_PASSWORD not set - email not sent")
         logger.info(f"[DEV] Email to {to}: {subject}")
         return False
     try:

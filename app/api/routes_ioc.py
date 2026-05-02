@@ -39,11 +39,11 @@ def detect_ioc_type(value: str) -> str:
     if re.match(r'^\d{1,3}(\.\d{1,3}){3}$', v):
         return "ip"
 
-    # Email — check before domain (contains @)
+    # Email - check before domain (contains @)
     if re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$', v):
         return "email"
 
-    # URL — starts with http/https
+    # URL - starts with http/https
     if re.match(r'^https?://', v):
         return "url"
 
@@ -64,7 +64,7 @@ def detect_ioc_type(value: str) -> str:
 
 
 # ============================================================
-# ANALYZE IOC — dispatches to correct enrichment pipeline
+# ANALYZE IOC - dispatches to correct enrichment pipeline
 # ============================================================
 
 @router.get("/analyze")
@@ -162,7 +162,7 @@ def fetch_all_investigations():
 
 
 # ============================================================
-# DEBUG — check which keys are loaded (dev only)
+# DEBUG - check which keys are loaded (dev only)
 # ============================================================
 
 @router.get("/debug/keys")
@@ -183,7 +183,7 @@ async def debug_keys():
 
 
 # ============================================================
-# DEBUG — test a specific IOC type detection
+# DEBUG - test a specific IOC type detection
 # ============================================================
 
 @router.get("/debug/detect")

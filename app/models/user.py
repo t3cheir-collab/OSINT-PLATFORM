@@ -20,7 +20,7 @@ class User(Base):
     verify_code_hash  = Column(String, nullable=True)
     verify_code_exp   = Column(DateTime, nullable=True)
 
-    # MFA code (hashed) — sent on each login
+    # MFA code (hashed) - sent on each login
     mfa_code_hash     = Column(String, nullable=True)
     mfa_code_exp      = Column(DateTime, nullable=True)
 

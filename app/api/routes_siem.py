@@ -1,6 +1,6 @@
 # app/api/routes_siem.py
 """
-SIEM Integration API — REST pull endpoint for automated enrichment.
+SIEM Integration API - REST pull endpoint for automated enrichment.
 
 Authentication: API key via X-API-Key header (long-lived, no MFA required).
 This is designed for machine-to-machine use by SIEM platforms, SOAR tools,
@@ -10,11 +10,11 @@ Compatible with: Splunk, Elastic SIEM, IBM QRadar, Microsoft Sentinel,
                  Cortex XSOAR, TheHive, and any REST-capable platform.
 
 Endpoints:
-  POST /siem/enrich          — bulk IOC enrichment (up to 10 IOCs per request)
-  GET  /siem/keys            — list  API keys
-  POST /siem/keys            — create a new API key
-  DELETE /siem/keys/{key_id} — revoke an API key
-  GET  /siem/health          — unauthenticated health check for SIEM monitoring
+  POST /siem/enrich          - bulk IOC enrichment (up to 10 IOCs per request)
+  GET  /siem/keys            - list  API keys
+  POST /siem/keys            - create a new API key
+  DELETE /siem/keys/{key_id} - revoke an API key
+  GET  /siem/health          - unauthenticated health check for SIEM monitoring
 """
 
 import asyncio
@@ -165,9 +165,9 @@ class CreateKeyResponse(BaseModel):
     id:         int
     name:       str
     key_prefix: str
-    raw_key:    str   # shown ONCE — user must copy this
+    raw_key:    str   # shown ONCE - user must copy this
     created_at: str
-    message:    str = "Store this key securely — it will not be shown again."
+    message:    str = "Store this key securely - it will not be shown again."
 
 
 # -- Helper: run enrichment for a single IOC -----------------------------------
@@ -218,10 +218,10 @@ async def _enrich_one(ioc: str, include_ai: bool) -> dict:
 
 @router.get("/health")
 async def siem_health():
-    """Unauthenticated health check — use this in SIEM monitoring dashboards."""
+    """Unauthenticated health check - use this in SIEM monitoring dashboards."""
     return {
         "status":   "operational",
-        "service":  "OSINT IOC Intelligence Platform — SIEM API",
+        "service":  "OSINT IOC Intelligence Platform - SIEM API",
         "version":  "1.0",
         "endpoints": {
             "enrich":     "POST /siem/enrich",
@@ -269,7 +269,7 @@ async def bulk_enrich(
     request_id = str(uuid.uuid4())[:8].upper()
     key_record, user = auth
 
-    logger.info(f"SIEM enrich request [{request_id}] — key={key_record.key_prefix} "
+    logger.info(f"SIEM enrich request [{request_id}] - key={key_record.key_prefix} "
                 f"iocs={len(req.iocs)} ai={req.include_ai} user={user.email}")
 
     # Deduplicate whilst preserving order
@@ -310,7 +310,7 @@ async def bulk_enrich(
             errors += 1
         results.append(IOCResult(**r))
 
-    logger.info(f"SIEM enrich [{request_id}] complete — "
+    logger.info(f"SIEM enrich [{request_id}] complete - "
                 f"{len(results)-errors} enriched, {errors} errors")
 
     return EnrichResponse(
@@ -322,7 +322,7 @@ async def bulk_enrich(
     )
 
 
-# -- API Key Management (JWT-authenticated — browser users manage their keys) --
+# -- API Key Management (JWT-authenticated - browser users manage their keys) --
 
 @router.get("/keys", response_model=list[APIKeyResponse])
 def list_keys(
@@ -356,7 +356,7 @@ def create_key(
 ):
     """
     Create a new API key for SIEM integration.
-    The raw key is shown ONCE — copy it immediately and store securely.
+    The raw key is shown ONCE - copy it immediately and store securely.
     """
     # Limit: max 10 active keys per user
     count = db.query(APIKey).filter(

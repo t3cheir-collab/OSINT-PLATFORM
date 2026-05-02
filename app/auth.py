@@ -1,4 +1,4 @@
-# app/auth.py  — core auth helpers (no routes)
+# app/auth.py  - core auth helpers (no routes)
 import os, secrets, hashlib
 from datetime import datetime, timedelta
 from passlib.context import CryptContext

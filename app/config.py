@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-# Load .env from the project root — this runs first before any service imports
+# Load .env from the project root - this runs first before any service imports
 load_dotenv()
 
 class Settings:

@@ -1,7 +1,7 @@
 from typing import Dict
 
 # ============================================================
-# SOURCE WEIGHTS  (0-100 scale throughout — no /10 normalization)
+# SOURCE WEIGHTS  (0-100 scale throughout - no /10 normalization)
 # ============================================================
 
 SOURCE_WEIGHTS = {
@@ -19,7 +19,7 @@ SOURCE_WEIGHTS = {
     "WHOIS":           0.10,
 }
 
-# Authoritative sources — if any of these crosses its threshold alone,
+# Authoritative sources - if any of these crosses its threshold alone,
 # it overrides the weighted average for the verdict
 AUTHORITATIVE_THRESHOLDS = {
     "VirusTotal":      {"malicious": 70, "suspicious": 40},
@@ -43,7 +43,7 @@ def calculate_confidence(sources: Dict) -> int:
 
 
 def calculate_threat_score(sources: Dict) -> float:
-    """Weighted sum — stays on 0-100 scale."""
+    """Weighted sum - stays on 0-100 scale."""
     total = 0.0
     for name, data in sources.items():
         if not isinstance(data, dict):

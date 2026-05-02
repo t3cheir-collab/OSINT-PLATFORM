@@ -373,7 +373,7 @@ def map_to_mitre_from_sources(sources: Dict, scrape_text: str, ioc_type: str) ->
     text_matches = map_to_mitre(scrape_text)
     matched_ids  = {t["id"].split(".")[0] for t in text_matches}
 
-    # 2. Source-field inference — returns list of technique ID strings
+    # 2. Source-field inference - returns list of technique ID strings
     source_ids = _techniques_from_sources(sources, ioc_type)
     for tid in source_ids:
         base = tid.split(".")[0]
@@ -384,7 +384,7 @@ def map_to_mitre_from_sources(sources: Dict, scrape_text: str, ioc_type: str) ->
                     text_matches.append(t.copy())
                     break
             else:
-                # Technique ID not in our list — add a minimal entry
+                # Technique ID not in our list - add a minimal entry
                 matched_ids.add(base)
                 text_matches.append({
                     "id": tid, "name": tid,
@@ -420,7 +420,7 @@ def map_to_owasp(sources: Dict, scrape_text: str, ioc_type: str) -> List[Dict]:
     tf   = sources.get("ThreatFox", {})
     mb   = sources.get("MalwareBazaar", {})
 
-    # Hash-specific OWASP mapping — malicious files map to software integrity + vulns
+    # Hash-specific OWASP mapping - malicious files map to software integrity + vulns
     if ioc_type == "hash":
         vt_dets = vt.get("detections", 0) if isinstance(vt, dict) else 0
         if vt_dets > 0:

@@ -40,7 +40,7 @@ def generate_full_report(
 
 
 # ============================================================
-# SUMMARY LINES  —  the SOC-style one-liner block
+# SUMMARY LINES  -  the SOC-style one-liner block
 # Format example:
 #   OSINT on [8.8.8.8]:
 #   VirusTotal: 0/94 | Google LLC
@@ -163,7 +163,7 @@ def build_summary_lines(ioc: str, ioc_type: str, sources: Dict, geo: Dict) -> Li
 
 def generate_summary(report: dict) -> str:
     """
-    Analyst Assessment — a narrative investigation report written as a case story.
+    Analyst Assessment - a narrative investigation report written as a case story.
     """
     from datetime import datetime
 
@@ -243,7 +243,7 @@ def generate_summary(report: dict) -> str:
         )
         if otx_p > 0:
             opener += (
-                f"AlienVault OTX shows {otx_p} pulse reference(s) — "
+                f"AlienVault OTX shows {otx_p} pulse reference(s) - "
                 f"these likely reflect this indicator appearing in captured traffic logs "
                 f"rather than direct malicious association. "
             )
@@ -257,7 +257,7 @@ def generate_summary(report: dict) -> str:
     findings = []
     if vt_eng > 0:
         if vt_det == 0:
-            findings.append(f"VirusTotal: Clean across {vt_eng} engines — no malware signatures detected.")
+            findings.append(f"VirusTotal: Clean across {vt_eng} engines - no malware signatures detected.")
         else:
             name_part = f" ({vt.get('name','')})" if vt.get("name") else ""
             findings.append(f"VirusTotal: {vt_det}/{vt_eng} engines flagged as malicious{name_part}.")
@@ -276,12 +276,12 @@ def generate_summary(report: dict) -> str:
     if otx_p > 0:
         note = otx.get("note", "")
         line = f"AlienVault OTX: {otx_p} threat pulse(s)"
-        if note: line += f" — {note}"
+        if note: line += f" - {note}"
         findings.append(line + ".")
 
     if tf_hits > 0:
         line = f"ThreatFox: {tf_hits} IOC record(s)"
-        if tf_mal: line += f" — malware family: {tf_mal}"
+        if tf_mal: line += f" - malware family: {tf_mal}"
         findings.append(line + ".")
 
     if mb.get("malware"):
@@ -293,19 +293,19 @@ def generate_summary(report: dict) -> str:
             findings.append(f"URLScan: {us.get('verdict','unknown').capitalize()} verdict.")
         if not gsb.get("safe", True) and gsb.get("checked", True):
             tt = gsb.get("threat_type","").replace("_"," ").title() or "Threat detected"
-            findings.append(f"Google Safe Browsing: UNSAFE — {tt}.")
+            findings.append(f"Google Safe Browsing: UNSAFE - {tt}.")
         if uh.get("score", 0) > 0:
-            findings.append(f"URLhaus: Present in malware distribution database — {uh.get('threat','unknown')}.")
+            findings.append(f"URLhaus: Present in malware distribution database - {uh.get('threat','unknown')}.")
 
     if ioc_type == "email":
         if er:
             rep  = er.get("reputation","unknown")
             susp = er.get("suspicious", False)
-            findings.append(f"EmailRep: {rep.capitalize()} reputation{' — suspicious activity flagged' if susp else ''}.")
+            findings.append(f"EmailRep: {rep.capitalize()} reputation{' - suspicious activity flagged' if susp else ''}.")
         if hp and hp.get("breaches", 0) > 0:
             names = hp.get("breach_names", [])
             findings.append(
-                f"HaveIBeenPwned: {hp['breaches']} data breach(es) — "
+                f"HaveIBeenPwned: {hp['breaches']} data breach(es) - "
                 f"{', '.join(names[:3]) if names else 'credentials potentially compromised'}."
             )
 
@@ -372,7 +372,7 @@ def generate_ai_narrative(
     geo: Dict,
 ) -> str:
     """
-    Rule-based narrative — quick structured summary used as a
+    Rule-based narrative - quick structured summary used as a
     fallback / supplement to the Claude AI analysis.
     """
     verdict = (
@@ -408,14 +408,14 @@ def generate_ai_narrative(
         conf = ab.get("confidence", 0)
         isp  = ab.get("isp", "")
         observations.append(
-            f"AbuseIPDB: {conf}% abuse confidence{(' — ' + isp) if isp else ''}."
+            f"AbuseIPDB: {conf}% abuse confidence{(' - ' + isp) if isp else ''}."
         )
 
     if otx:
         pulses = otx.get("pulses", 0)
         note   = otx.get("note", "")
         observations.append(
-            f"AlienVault OTX: {pulses} pulse(s){(' — ' + note) if note else ''}."
+            f"AlienVault OTX: {pulses} pulse(s){(' - ' + note) if note else ''}."
         )
 
     if tf and ioc_type in ("ip", "domain", "hash"):
@@ -423,7 +423,7 @@ def generate_ai_narrative(
         malware = tf.get("malware", "")
         if hits > 0:
             observations.append(
-                f"ThreatFox: {hits} hit(s){(' — ' + malware) if malware else ''}."
+                f"ThreatFox: {hits} hit(s){(' - ' + malware) if malware else ''}."
             )
         else:
             observations.append("ThreatFox: no known malware associations.")
@@ -437,14 +437,14 @@ def generate_ai_narrative(
     if gsb and ioc_type in ("domain", "url"):
         safe = gsb.get("safe", True)
         observations.append(
-            f"Google Safe Browsing: {'safe' if safe else 'UNSAFE — ' + gsb.get('threat_type','flagged')}."
+            f"Google Safe Browsing: {'safe' if safe else 'UNSAFE - ' + gsb.get('threat_type','flagged')}."
         )
 
     if er and ioc_type == "email":
         rep  = er.get("reputation", "unknown")
         susp = er.get("suspicious", False)
         observations.append(
-            f"EmailRep: {rep} reputation{'— suspicious' if susp else ''}."
+            f"EmailRep: {rep} reputation{'- suspicious' if susp else ''}."
         )
 
     if hp and ioc_type == "email":

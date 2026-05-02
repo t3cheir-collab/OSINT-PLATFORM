@@ -6,7 +6,7 @@ findings for each IOC report.
 
 Requires:  ANTHROPIC_API_KEY environment variable.
 Falls back gracefully to an empty string if the key is missing or the
-call fails — the rest of the report still renders normally.
+call fails - the rest of the report still renders normally.
 """
 
 import os
@@ -42,7 +42,7 @@ def _build_prompt(
 ) -> str:
     """Serialise the OSINT findings into a structured prompt for Claude."""
 
-    # Source findings — only include fields that are meaningful
+    # Source findings - only include fields that are meaningful
     source_lines = []
     for name, data in sources.items():
         if not isinstance(data, dict):
@@ -95,11 +95,11 @@ Intelligence Source Results:
 MITRE ATT&CK: {mitre_str}
 
 Write a structured analysis with these exact sections:
-1. **Executive Summary** — 2-3 sentences: what this indicator is, overall threat assessment, and key risk factor.
-2. **Source Analysis** — for each source that returned data, one sentence explaining what it found and what that means in context. Skip sources with no findings.
-3. **Threat Assessment** — explain the verdict in detail: why is this malicious/suspicious/benign? What patterns support this conclusion?
-4. **Recommended Actions** — specific, prioritised SOC actions (block, monitor, investigate, pivot, etc.) relevant to this IOC type.
-5. **Analyst Notes** — any caveats, false positive considerations, or additional context an analyst should know.
+1. **Executive Summary** - 2-3 sentences: what this indicator is, overall threat assessment, and key risk factor.
+2. **Source Analysis** - for each source that returned data, one sentence explaining what it found and what that means in context. Skip sources with no findings.
+3. **Threat Assessment** - explain the verdict in detail: why is this malicious/suspicious/benign? What patterns support this conclusion?
+4. **Recommended Actions** - specific, prioritised SOC actions (block, monitor, investigate, pivot, etc.) relevant to this IOC type.
+5. **Analyst Notes** - any caveats, false positive considerations, or additional context an analyst should know.
 
 Be direct, technical, and concise. Use SOC/threat intel terminology. No filler phrases. Maximum 400 words."""
 

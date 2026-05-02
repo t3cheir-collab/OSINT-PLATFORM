@@ -115,11 +115,11 @@ def verify_email(req: VerifyEmailRequest, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="Account not found")
     if user.is_verified:
-        return {"message": "Email already verified — you can log in"}
+        return {"message": "Email already verified - you can log in"}
     if not user.verify_code_hash or not user.verify_code_exp:
-        raise HTTPException(status_code=400, detail="No verification code found — try registering again")
+        raise HTTPException(status_code=400, detail="No verification code found - try registering again")
     if datetime.utcnow() > user.verify_code_exp:
-        raise HTTPException(status_code=400, detail="Verification code expired — please request a new one")
+        raise HTTPException(status_code=400, detail="Verification code expired - please request a new one")
     if not verify_code(req.code.strip(), user.verify_code_hash):
         raise HTTPException(status_code=400, detail="Incorrect verification code")
 
@@ -154,7 +154,7 @@ def resend_verification(req: ForgotPasswordRequest, db: Session = Depends(get_db
 def login(req: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == req.email.lower()).first()
 
-    # Generic error — don't reveal if email exists
+    # Generic error - don't reveal if email exists
     def bad_creds():
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
@@ -203,7 +203,7 @@ def verify_mfa(req: MFARequest, db: Session = Depends(get_db)):
     if not user or not user.mfa_code_hash:
         raise HTTPException(status_code=400, detail="No MFA code pending for this account")
     if datetime.utcnow() > user.mfa_code_exp:
-        raise HTTPException(status_code=400, detail="MFA code expired — please log in again")
+        raise HTTPException(status_code=400, detail="MFA code expired - please log in again")
     if not verify_code(req.code.strip(), user.mfa_code_hash):
         raise HTTPException(status_code=400, detail="Incorrect MFA code")
 
@@ -222,7 +222,7 @@ def verify_mfa(req: MFARequest, db: Session = Depends(get_db)):
 @router.post("/forgot-password")
 def forgot_password(req: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == req.email.lower()).first()
-    # Always return same message — don't reveal if account exists
+    # Always return same message - don't reveal if account exists
     msg = {"message": "If that email is registered, a password reset link has been sent."}
     if not user or not user.is_verified:
         return msg
@@ -250,7 +250,7 @@ def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=400, detail="Invalid or already-used reset link")
     if datetime.utcnow() > user.reset_token_exp:
-        raise HTTPException(status_code=400, detail="Reset link has expired — please request a new one")
+        raise HTTPException(status_code=400, detail="Reset link has expired - please request a new one")
 
     # Validate new password strength
     strength = check_password_strength(req.new_password)

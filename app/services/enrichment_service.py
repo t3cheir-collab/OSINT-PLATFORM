@@ -13,7 +13,7 @@ from app.services.report_service import generate_full_report, generate_summary, 
 from app.services.ai_service import generate_ai_analysis_async
 
 # ================= API KEYS =================
-# Read from config.py (which calls load_dotenv()) — NOT module-level os.getenv()
+# Read from config.py (which calls load_dotenv()) - NOT module-level os.getenv()
 # so keys are always available regardless of import order
 from app.config import settings as _cfg
 
@@ -127,7 +127,7 @@ async def vt_url(client: httpx.AsyncClient, url: str) -> Dict:
         r = await client.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers)
 
         if r.status_code in (404, 400):
-            # URL not in VT yet — submit it for scanning
+            # URL not in VT yet - submit it for scanning
             sub = await client.post(
                 "https://www.virustotal.com/api/v3/urls",
                 headers=headers,
@@ -256,7 +256,7 @@ async def otx_ip(client: httpx.AsyncClient, ip: str) -> Dict:
         country_name = data.get("country_name", "")
         city         = data.get("city", "")
         org          = data.get("asn", "")
-        # Score: pulses are reference-based — popular IPs (8.8.8.8 etc.) appear in
+        # Score: pulses are reference-based - popular IPs (8.8.8.8 etc.) appear in
         # many pulses simply because they're in traffic logs, not because they're threats.
         # Cap at 60 so OTX alone can't drive the verdict; scale conservatively.
         score = 0 if pulses == 0 else min(60, pulses * 6)
@@ -357,7 +357,7 @@ async def urlscan_lookup(client: httpx.AsyncClient, query: str, is_url: bool = F
 
             uuid = sub.json().get("uuid", "")
             if not uuid and sub.status_code == 400:
-                # Already in queue or scanned — search for it
+                # Already in queue or scanned - search for it
                 import urllib.parse as _up3
                 _parsed3 = _up3.urlparse(query)
                 _host3   = _parsed3.netloc or _parsed3.path
@@ -495,7 +495,7 @@ async def gsb_lookup(client: httpx.AsyncClient, ioc: str) -> Dict:
 
 async def urlhaus_lookup(client: httpx.AsyncClient, url_or_host: str, is_url: bool = False) -> Dict:
     """
-    URLhaus by abuse.ch — free, no API key required.
+    URLhaus by abuse.ch - free, no API key required.
     Huge database of malware distribution URLs.
     Supports: full URL lookup or host lookup.
     """
@@ -608,14 +608,14 @@ async def whois_lookup(client: httpx.AsyncClient, domain: str) -> Dict:
         return {"score": 0, "link": link}
 
 # ============================================================
-# ThreatFox  (IP + domain + hash — NOT url)
+# ThreatFox  (IP + domain + hash - NOT url)
 # ============================================================
 
 async def threatfox(client: httpx.AsyncClient, ioc: str, ioc_type: str = "ip") -> Dict:
     """
-    ThreatFox API — free, no key required.
+    ThreatFox API - free, no key required.
     Supported IOC types: ip_port (ip), domain, md5_hash, sha256_hash.
-    Emails and URLs are not supported — returns empty for those.
+    Emails and URLs are not supported - returns empty for those.
     """
     link = f"https://threatfox.abuse.ch/browse.php?search=ioc%3A{ioc}"
 
@@ -628,7 +628,7 @@ async def threatfox(client: httpx.AsyncClient, ioc: str, ioc_type: str = "ip") -
 
     try:
         # Build correct search term per type
-        # For IPs: ThreatFox stores as "1.2.3.4:port" — search by tag instead for plain IPs
+        # For IPs: ThreatFox stores as "1.2.3.4:port" - search by tag instead for plain IPs
         if ioc_type == "ip":
             payload = {"query": "search_ioc", "search_term": ioc}
         elif ioc_type == "hash":
@@ -702,7 +702,7 @@ async def emailrep(client: httpx.AsyncClient, email: str) -> Dict:
 async def disposable_check(client: httpx.AsyncClient, email: str) -> Dict:
     """
     Returns a direct link to EmailRep for disposable/reputation check.
-    EmailRep already covers disposable detection — no separate call needed.
+    EmailRep already covers disposable detection - no separate call needed.
     """
     link = f"https://emailrep.io/{email}"
     return {"score": 0, "link": link}
@@ -710,14 +710,14 @@ async def disposable_check(client: httpx.AsyncClient, email: str) -> Dict:
 
 async def hibp(client: httpx.AsyncClient, email: str) -> Dict:
     """
-    HaveIBeenPwned — checks if email appears in known data breaches.
+    HaveIBeenPwned - checks if email appears in known data breaches.
     Requires HIBP_API_KEY in .env (free key at haveibeenpwned.com/API/Key).
     Without a key the source shows score=0 with a link to check manually.
     """
     link = f"https://haveibeenpwned.com/account/{email}"
     if not _hibp_key():
         import logging
-        logging.getLogger(__name__).info(f"HIBP: no API key set — skipping API call, link only")
+        logging.getLogger(__name__).info(f"HIBP: no API key set - skipping API call, link only")
         return {"score": 0, "breaches": 0, "no_key": True, "link": link}
     try:
         r = await client.get(
@@ -738,7 +738,7 @@ async def hibp(client: httpx.AsyncClient, email: str) -> Dict:
         data  = r.json()
         count = len(data)
         names = [b.get("Name", "") for b in data[:5]]
-        # Score: each breach adds risk — 5+ = suspicious, 8+ = malicious threshold
+        # Score: each breach adds risk - 5+ = suspicious, 8+ = malicious threshold
         score = min(100, count * 10)
         import logging
         logging.getLogger(__name__).info(f"HIBP [{email}]: {count} breaches → score={score}")
@@ -755,7 +755,7 @@ async def hibp(client: httpx.AsyncClient, email: str) -> Dict:
 
 
 # ============================================================
-# Shodan  (IP only — host info, open ports)
+# Shodan  (IP only - host info, open ports)
 # ============================================================
 
 SHODAN_API_KEY = os.getenv("SHODAN_API_KEY")
@@ -956,7 +956,7 @@ async def enrich_hash_async(file_hash: str) -> Dict:
         )
         scrape_data = await scrape(c, file_hash)
 
-        # MalwareBazaar (abuse.ch) — free, no API key needed
+        # MalwareBazaar (abuse.ch) - free, no API key needed
         # MalwareBazaar uses keyword search syntax: md5:HASH or sha256:HASH
         if len(file_hash) == 32:
             mb_search = f"md5:{file_hash}"
@@ -1040,7 +1040,7 @@ async def enrich_hash_async(file_hash: str) -> Dict:
 
 async def abstract_email(client: httpx.AsyncClient, email: str) -> Dict:
     """
-    Abstract API email validation — free tier, 100 req/month.
+    Abstract API email validation - free tier, 100 req/month.
     Checks deliverability, disposable, MX records, SMTP validity.
     Set ABSTRACT_API_KEY in .env to enable.
     https://app.abstractapi.com/api/email-validation
@@ -1087,7 +1087,7 @@ async def abstract_email(client: httpx.AsyncClient, email: str) -> Dict:
 
 async def hunter_email_verify(client: httpx.AsyncClient, email: str) -> Dict:
     """
-    Hunter.io email verifier — free tier 25 req/month.
+    Hunter.io email verifier - free tier 25 req/month.
     Verifies email deliverability and catches-all / disposable status.
     Set HUNTER_API_KEY in .env to enable.
     https://hunter.io/api-documentation/v2#email-verifier
@@ -1124,7 +1124,7 @@ async def hunter_email_verify(client: httpx.AsyncClient, email: str) -> Dict:
 
 async def hibp_pastes(client: httpx.AsyncClient, email: str) -> Dict:
     """
-    HaveIBeenPwned Pastes — checks if email appears in paste sites (Pastebin etc).
+    HaveIBeenPwned Pastes - checks if email appears in paste sites (Pastebin etc).
     Uses the same HIBP_API_KEY as the breach check. Free key at haveibeenpwned.com/API/Key.
     """
     link = f"https://haveibeenpwned.com/account/{email}#pastes"
@@ -1153,7 +1153,7 @@ async def hibp_pastes(client: httpx.AsyncClient, email: str) -> Dict:
 
 async def disify_check(client: httpx.AsyncClient, email: str) -> Dict:
     """
-    Disify — free, no API key required.
+    Disify - free, no API key required.
     GET https://disify.com/api/email/{email}
     Fields: format, domain, disposable, dns, whitelist, confidence, signals
     """
@@ -1196,7 +1196,7 @@ async def disify_check(client: httpx.AsyncClient, email: str) -> Dict:
 
 async def mailcheck(client: httpx.AsyncClient, email: str) -> Dict:
     """
-    MailCheck.ai — free, no API key required.
+    MailCheck.ai - free, no API key required.
     GET https://api.mailcheck.ai/email/{email}
     Fields: disposable, mx, spam, role_account, domain_age_in_days
     """
@@ -1241,7 +1241,7 @@ async def mailcheck(client: httpx.AsyncClient, email: str) -> Dict:
 
 async def emailable_check(client: httpx.AsyncClient, email: str) -> Dict:
     """
-    Emailable — email verification API with web UI at emailable.com.
+    Emailable - email verification API with web UI at emailable.com.
     Set EMAILABLE_API_KEY in .env (free tier available).
     GET https://api.emailable.com/v1/verify?email={email}&api_key={key}
     Returns: state, score, disposable, role, free, reason, safe_to_send

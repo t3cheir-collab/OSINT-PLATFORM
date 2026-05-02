@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 ANTHROPIC_URL     = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL      = "claude-sonnet-4-5"
-TIMEOUT           = httpx.Timeout(90.0)   # longer — one big call
+TIMEOUT           = httpx.Timeout(90.0)   # longer - one big call
 CACHE_TTL_SECONDS = 1800                  # 30 min cache
 
 
@@ -60,10 +60,10 @@ async def platform_status() -> Dict[str, Any]:
 # THREAT FEED
 # Strategy: ONE batched Claude call for all 6 items.
 #   Output tokens: ~2000 total (well under 8K/min limit)
-#   Web search uses: 1 call (limit is 30/sec — no issue)
+#   Web search uses: 1 call (limit is 30/sec - no issue)
 #   Input tokens: ~1500 (well under 30K/min)
 #
-# Per-category endpoint reuses the batch cache — only calls Claude if
+# Per-category endpoint reuses the batch cache - only calls Claude if
 # that specific category isn't cached yet.
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -81,7 +81,7 @@ _BATCH_SYSTEM = (
     "Search the web for current cybersecurity threats. "
     "Return ONLY a valid JSON array of objects. "
     "No markdown, no code fences, no explanation. "
-    "CRITICAL: never use double-quote characters inside string values — rephrase instead."
+    "CRITICAL: never use double-quote characters inside string values - rephrase instead."
 )
 
 _SINGLE_SYSTEM = (
@@ -106,7 +106,7 @@ def _batch_prompt() -> str:
         'category (use the category value given), '
         'severity (CRITICAL/HIGH/MEDIUM), '
         'title (short), '
-        'summary (max 2 sentences — no double-quote chars), '
+        'summary (max 2 sentences - no double-quote chars), '
         'ioc_examples (array of IPs/domains/hashes only, max 2, empty array if none), '
         'tags (array of strings), '
         'source (publication name), '
@@ -173,7 +173,7 @@ def _parse_array(text: str) -> list:
         items = json.loads(text)
         return [_postprocess(i, f"item_{n}") for n, i in enumerate(items, 1) if isinstance(i, dict)]
     except json.JSONDecodeError as e:
-        logger.warning(f"Batch parse failed: {e} — trying object extraction")
+        logger.warning(f"Batch parse failed: {e} - trying object extraction")
         # Fall back: extract individual objects
         items = []
         depth, start = 0, None
@@ -213,7 +213,7 @@ def _parse_object(text: str, fallback_id: str) -> Optional[dict]:
 async def threat_feed(force: bool = False) -> Dict[str, Any]:
     """
     ONE Claude call returns all 6 threat items as a JSON array.
-    ~2000 output tokens total — well within 8K/min Tier 1 limit.
+    ~2000 output tokens total - well within 8K/min Tier 1 limit.
     Cached 30 minutes. ?force=true bypasses cache.
     """
     now = datetime.utcnow()
@@ -229,7 +229,7 @@ async def threat_feed(force: bool = False) -> Dict[str, Any]:
                 "cache_age_seconds": int(age),
             }
 
-    logger.info("Fetching threat feed — single batched Claude call")
+    logger.info("Fetching threat feed - single batched Claude call")
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             r = await client.post(
@@ -245,7 +245,7 @@ async def threat_feed(force: bool = False) -> Dict[str, Any]:
             )
         if r.status_code == 429:
             logger.warning("Threat feed rate limited (429)")
-            raise HTTPException(status_code=429, detail="Rate limited — please wait a minute then try again")
+            raise HTTPException(status_code=429, detail="Rate limited - please wait a minute then try again")
         if r.status_code != 200:
             logger.error(f"Threat feed Claude error {r.status_code}: {r.text[:200]}")
             raise HTTPException(status_code=502, detail=f"Claude API error {r.status_code}")
@@ -297,7 +297,7 @@ async def threat_feed_category(category_id: str) -> Dict[str, Any]:
                 ANTHROPIC_URL,
                 json={
                     "model":      CLAUDE_MODEL,
-                    "max_tokens": 500,   # single item — very small
+                    "max_tokens": 500,   # single item - very small
                     "system":     _SINGLE_SYSTEM,
                     "tools":      [{"type": "web_search_20250305", "name": "web_search"}],
                     "messages":   [{"role": "user", "content": _single_prompt(cat[1], cat[2])}],
@@ -306,7 +306,7 @@ async def threat_feed_category(category_id: str) -> Dict[str, Any]:
             )
         if r.status_code == 429:
             logger.warning(f"Category [{category_id}] rate limited")
-            raise HTTPException(status_code=429, detail="Rate limited — wait 30 seconds then retry")
+            raise HTTPException(status_code=429, detail="Rate limited - wait 30 seconds then retry")
         if r.status_code != 200:
             raise HTTPException(status_code=502, detail=f"Claude API error {r.status_code}")
 
@@ -370,7 +370,7 @@ async def ioc_chat(req: ChatRequest) -> Dict[str, Any]:
 
         blocks = r.json().get("content", [])
         text   = " ".join(b.get("text", "") for b in blocks if b.get("type") == "text").strip()
-        return {"reply": text or "No response — try rephrasing."}
+        return {"reply": text or "No response - try rephrasing."}
 
     except HTTPException:
         raise

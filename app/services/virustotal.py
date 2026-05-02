@@ -3,7 +3,7 @@ from app.config import settings
 
 BASE = "https://www.virustotal.com/api/v3"
 
-# NOTE: Do NOT set HEADERS at module level — settings.vt_api_key is "" at import time.
+# NOTE: Do NOT set HEADERS at module level - settings.vt_api_key is "" at import time.
 # Always read the key fresh at call time.
 
 def _headers():
