@@ -1,6 +1,6 @@
 # app/main.py
 
-# !! MUST BE FIRST - loads .env before any service imports read os.getenv() !!
+# MUST BE FIRST - loads .env before any service imports read os.getenv() !!
 import app.config  # noqa: F401 - triggers load_dotenv() immediately
 
 import logging
@@ -41,11 +41,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://osint-platform-wkjt.onrender.com",  
-],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,19 +74,23 @@ async def health_check():
         }
     }
 
-@app.get("/")
-async def root():
-    return {"message": "OSINT IOC Platform running", "docs": "/docs"}
-
-# -- Serve React frontend ------------------------------------------------------
+# - Serve React frontend ---------------------------
+# This must come AFTER all API routes so it doesn't intercept them.
 import os
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 _dist = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
 if os.path.exists(_dist):
-    app.mount("/assets", StaticFiles(directory=os.path.join(_dist, "assets")), name="assets")
+    _assets = os.path.join(_dist, "assets")
+    if os.path.exists(_assets):
+        app.mount("/assets", StaticFiles(directory=_assets), name="assets")
 
+    @app.get("/")
     @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str):
+    async def serve_frontend(full_path: str = ""):
         return FileResponse(os.path.join(_dist, "index.html"))
+else:
+    @app.get("/")
+    async def root():
+        return {"message": "OSINT IOC Platform - frontend not built", "docs": "/docs"}
