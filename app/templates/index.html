@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OSINT Intel Platform</title>
+</head>
+<body>
+
+<h2>IOC Analyzer</h2>
+
+<form action="/web/analyze">
+    <input name="ioc" placeholder="Enter IP or Domain" required>
+    <select name="type">
+        <option value="ip">IP</option>
+        <option value="domain">Domain</option>
+    </select>
+    <button type="submit">Analyze</button>
+</form>
+
+{% if result %}
+<hr>
+<h3>Result</h3>
+<p><b>IOC:</b> {{ result.ioc }}</p>
+<p><b>Verdict:</b> {{ result.verdict }}</p>
+<p><b>Score:</b> {{ result.score }}</p>
+
+<ul>
+    <li><a href="{{ result.links.virustotal }}" target="_blank">VirusTotal</a></li>
+    <li><a href="{{ result.links.otx }}" target="_blank">OTX</a></li>
+    <li><a href="{{ result.links.abuseipdb }}" target="_blank">AbuseIPDB</a></li>
+</ul>
+{% endif %}
+
+</body>
+</html>
