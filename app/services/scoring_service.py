@@ -19,19 +19,25 @@ SOURCE_WEIGHTS = {
     "WHOIS":           0.10,
 }
 
-# Authoritative sources - if any of these crosses its threshold alone,
-# it overrides the weighted average for the verdict
+# Authoritative sources - thresholds for override
+# OTX is community-contributed and prone to false positives on major infrastructure
+# (Google DNS, Cloudflare etc. appear in OTX pulses because malware *uses* them,
+#  not because they are C2. OTX alone cannot trigger malicious.)
 AUTHORITATIVE_THRESHOLDS = {
     "VirusTotal":      {"malicious": 70, "suspicious": 40},
     "AbuseIPDB":       {"malicious": 70, "suspicious": 35},
     "ThreatFox":       {"malicious": 50, "suspicious": 20},
     "GSB":             {"malicious": 80, "suspicious": 50},
     "MalwareBazaar":   {"malicious": 60, "suspicious": 30},
-    "OTX":             {"malicious": 55, "suspicious": 25},
+    "OTX":             {"malicious": 85, "suspicious": 55},  # raised - OTX alone cannot trigger malicious
     "Disify":          {"malicious": 60, "suspicious": 30},
     "MailCheck":       {"malicious": 75, "suspicious": 45},
     "Emailable":       {"malicious": 60, "suspicious": 30},
 }
+
+# Sources that are high-confidence enough to trigger malicious verdict alone
+# (community-sourced feeds like OTX require corroboration)
+SOLO_AUTHORITATIVE = {"VirusTotal", "AbuseIPDB", "ThreatFox", "GSB", "MalwareBazaar"}
 
 
 def calculate_confidence(sources: Dict) -> int:
@@ -72,26 +78,51 @@ def generate_risk_score(sources: Dict, scrape: str = None) -> Dict:
     context    = calculate_context_score(scrape)
     raw_score  = min(100.0, threat + context)
 
-    # - Authoritative override ---------------
-    # If any single authoritative source clearly flags malicious,
-    # don't let clean sources average it away
-    auth_verdict = None
+    # - Authoritative override ------------------------
+    # Rules:
+    # 1. A solo-authoritative source (VT, AbuseIPDB, ThreatFox, GSB, MalwareBazaar)
+    #    can trigger malicious alone if it crosses its threshold.
+    # 2. Community sources (OTX) require corroboration: at least one other source
+    #    must also be suspicious/malicious before OTX can push the verdict to malicious.
+    # 3. Any authoritative source crossing its suspicious threshold - suspicious
+    #    (unless already overridden to malicious).
+
+    malicious_solo    = []   # high-confidence sources at malicious level
+    malicious_community = [] # community sources at malicious level
+    suspicious_any    = []   # any source at suspicious level
+
     for src, thresholds in AUTHORITATIVE_THRESHOLDS.items():
         src_score = 0
         if isinstance(sources.get(src), dict):
             src_score = sources[src].get("score", 0) or 0
-        if src_score >= thresholds["malicious"]:
-            auth_verdict = "malicious"
-            break
-        elif src_score >= thresholds["suspicious"] and auth_verdict != "malicious":
-            auth_verdict = "suspicious"
 
-    # - Final verdict --------------------
+        if src_score >= thresholds["malicious"]:
+            if src in SOLO_AUTHORITATIVE:
+                malicious_solo.append(src)
+            else:
+                malicious_community.append(src)
+        elif src_score >= thresholds["suspicious"]:
+            suspicious_any.append(src)
+
+    # Determine auth_verdict
+    auth_verdict = None
+    if malicious_solo:
+        # High-confidence source alone is enough
+        auth_verdict = "malicious"
+    elif malicious_community:
+        # Community source (OTX) needs at least one corroborating signal
+        corroborated = len(suspicious_any) > 0 or raw_score >= 45
+        auth_verdict = "malicious" if corroborated else "suspicious"
+    elif suspicious_any:
+        auth_verdict = "suspicious"
+
+    # - Final verdict ----------------------------─
     import logging as _log
     _log.getLogger(__name__).info(
         f"Scoring: raw={raw_score:.1f} auth={auth_verdict} "
         f"sources={[(k,v.get('score',0)) for k,v in sources.items() if isinstance(v,dict)]}"
     )
+
     if auth_verdict == "malicious" or raw_score >= 60:
         verdict    = "malicious"
         risk_level = "HIGH"
@@ -101,11 +132,10 @@ def generate_risk_score(sources: Dict, scrape: str = None) -> Dict:
     else:
         verdict    = "benign"
         risk_level = "LOW"
-    _log.getLogger(__name__).info(f"Verdict: {verdict}, display_score will be set next")
 
-    # display_score: if an authoritative source triggered malicious verdict,
-    # show the highest authoritative source score (not the weighted average)
-    # so a hash with 67/69 VT detections shows 99 not 35
+    _log.getLogger(__name__).info(f"Verdict: {verdict}")
+
+    # display_score: show highest authoritative source score when malicious override triggered
     max_auth_score = 0
     for src in AUTHORITATIVE_THRESHOLDS:
         if isinstance(sources.get(src), dict):
@@ -118,12 +148,11 @@ def generate_risk_score(sources: Dict, scrape: str = None) -> Dict:
     else:
         display_score = round(raw_score)
 
-    # Keep cvss_score as 0-10 for backward compat with narrative/report
     cvss_score = round(raw_score / 10.0, 2)
 
     return {
         "cvss_score":    cvss_score,
-        "raw_score":     display_score,   # display_score on 0-100
+        "raw_score":     display_score,
         "risk_level":    risk_level,
         "confidence":    confidence,
         "verdict":       verdict,
