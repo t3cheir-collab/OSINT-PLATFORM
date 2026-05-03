@@ -87,10 +87,5 @@ if os.path.exists(_dist):
         app.mount("/assets", StaticFiles(directory=_assets), name="assets")
 
     @app.get("/")
-    @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str = ""):
-        return FileResponse(os.path.join(_dist, "index.html"))
-else:
-    @app.get("/")
     async def root():
-        return {"message": "OSINT IOC Platform - frontend not built", "docs": "/docs"}
+        return {"message": "OSINT IOC Platform running", "docs": "/docs"}

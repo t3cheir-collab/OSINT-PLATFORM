@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_BASE = "https://osint-platform-wkjt.onrender.com";
+const API_BASE = "http://127.0.0.1:8000";
 
 // -- Auth token helpers ----------------------------------------------------
 const getToken  = () => localStorage.getItem("osint_token");
