@@ -470,8 +470,8 @@ function ScoreGauge({ score, size = 200 }) {
       <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fill="#4B5563">out of 100</text>
       <text x={cx} y={cy + 34} textAnchor="middle" fontSize="14" fontWeight="700" fill={vs.color}
         style={{ filter: `drop-shadow(0 0 4px ${vs.accent})` }}>{vs.label.toUpperCase()}</text>
-      <text x={size * 0.04} y={cy + 26} textAnchor="start"  fontSize="9" fontWeight="700" fill="#10B981">LOW</text>
-      <text x={size * 0.96} y={cy + 26} textAnchor="end"    fontSize="9" fontWeight="700" fill="#EF4444">HIGH</text>
+      <text x={size * 0.04} y={cy + 52} textAnchor="start"  fontSize="9" fontWeight="700" fill="#10B981">LOW</text>
+      <text x={size * 0.96} y={cy + 52} textAnchor="end"    fontSize="9" fontWeight="700" fill="#EF4444">HIGH</text>
     </svg>
   );
 }
