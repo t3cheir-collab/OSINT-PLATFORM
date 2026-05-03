@@ -1,39 +1,43 @@
 # app/services/email_service.py
 import os
 import logging
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import httpx
 
 logger = logging.getLogger(__name__)
 
-GMAIL_USER = os.getenv("MAIL_USERNAME", "")
-GMAIL_PASS = os.getenv("MAIL_PASSWORD", "")   # Gmail App Password (16 chars, no spaces)
-MAIL_FROM  = os.getenv("MAIL_FROM", GMAIL_USER)
-APP_NAME   = "OSINT Intelligence Platform"
-APP_URL    = os.getenv("APP_URL", "http://localhost:5173")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+MAIL_FROM      = os.getenv("MAIL_FROM", "onboarding@resend.dev")
+APP_NAME       = "OSINT Intelligence Platform"
+APP_URL        = os.getenv("APP_URL", "http://localhost:5173")
 
 
 def _send(to: str, subject: str, html: str) -> bool:
-    """Send email via Gmail SMTP TLS. Returns True on success."""
-    if not GMAIL_USER or not GMAIL_PASS:
-        logger.warning("MAIL_USERNAME / MAIL_PASSWORD not set - email not sent")
-        logger.info(f"[DEV] Email to {to}: {subject}")
+    """Send email via Resend API (works on Render free tier -no SMTP needed)."""
+    if not RESEND_API_KEY:
+        logger.warning("RESEND_API_KEY not set -email not sent")
+        logger.info(f"[DEV] Would send to {to}: {subject}")
         return False
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"]    = f"{APP_NAME} <{MAIL_FROM}>"
-        msg["To"]      = to
-        msg.attach(MIMEText(html, "html"))
-
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(GMAIL_USER, GMAIL_PASS)
-            server.sendmail(MAIL_FROM, to, msg.as_string())
-        logger.info(f"Email sent to {to}: {subject}")
-        return True
+        r = httpx.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type":  "application/json",
+            },
+            json={
+                "from":    f"{APP_NAME} <{MAIL_FROM}>",
+                "to":      [to],
+                "subject": subject,
+                "html":    html,
+            },
+            timeout=10.0,
+        )
+        if r.status_code in (200, 201):
+            logger.info(f"Email sent to {to}: {subject}")
+            return True
+        else:
+            logger.error(f"Resend error {r.status_code}: {r.text}")
+            return False
     except Exception as e:
         logger.error(f"Email send failed to {to}: {e}")
         return False
@@ -91,7 +95,7 @@ def send_password_reset_email(to: str, reset_url: str) -> bool:
     </p>
     <div style="text-align:center;margin-bottom:24px;">
       <a href="{reset_url}" style="display:inline-block;background:linear-gradient(135deg,#2563EB,#3B82F6);color:white;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:800;font-size:14px;">
-        Reset Password →
+        Reset Password
       </a>
     </div>
     <p style="color:#6B7280;font-size:12px;">This link expires in 1 hour. If you didn't request a reset, ignore this email.</p>
