@@ -47,8 +47,8 @@ const SOURCE_COLORS = {
 };
 
 // Exactly 4 canonical source slots per IOC type
-// These drive the intelligence sources panel - always shows 4 rows
-// Tool matrix - matches backend pipeline exactly per IOC type
+// These drive the intelligence sources panel -always shows 4 rows
+// Tool matrix -matches backend pipeline exactly per IOC type
 const SOURCE_SLOTS = {
   ip:     ["VirusTotal", "AbuseIPDB",    "OTX",     "Shodan",         "ThreatFox"],
   domain: ["VirusTotal", "URLScan",      "GSB",     "OTX",            "WHOIS"],
@@ -71,11 +71,11 @@ const PTITLE = { fontSize: 10, fontWeight: 700, color: "#4B5563", letterSpacing:
 
 // Validation rules: returns null if valid, error string if invalid
 const IOC_VALIDATORS = {
-  ip:     { re: /^\d{1,3}(\.\d{1,3}){3}$/,                     msg: "Invalid IP address - expected format: 192.168.1.1" },
-  domain: { re: /^[a-zA-Z0-9][a-zA-Z0-9.-]{0,253}\.[a-zA-Z]{2,}$/, msg: "Invalid domain - expected format: example.com" },
-  hash:   { re: /^[a-fA-F0-9]{32}$|^[a-fA-F0-9]{40}$|^[a-fA-F0-9]{64}$/, msg: "Invalid hash - expected MD5 (32), SHA1 (40), or SHA256 (64) hex characters" },
-  url:    { re: /^https?:\/\/.+\..+/,                            msg: "Invalid URL - must start with http:// or https://" },
-  email:  { re: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,               msg: "Invalid email address - expected format: user@example.com" },
+  ip:     { re: /^\d{1,3}(\.\d{1,3}){3}$/,                     msg: "Invalid IP address -expected format: 192.168.1.1" },
+  domain: { re: /^[a-zA-Z0-9][a-zA-Z0-9.-]{0,253}\.[a-zA-Z]{2,}$/, msg: "Invalid domain -expected format: example.com" },
+  hash:   { re: /^[a-fA-F0-9]{32}$|^[a-fA-F0-9]{40}$|^[a-fA-F0-9]{64}$/, msg: "Invalid hash -expected MD5 (32), SHA1 (40), or SHA256 (64) hex characters" },
+  url:    { re: /^https?:\/\/.+\..+/,                            msg: "Invalid URL -must start with http:// or https://" },
+  email:  { re: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,               msg: "Invalid email address -expected format: user@example.com" },
 };
 
 function validateIOC(value, iocType) {
@@ -93,7 +93,7 @@ function detectIOC(v) {
   if (/^(http|https):\/\//.test(val)) return "url";
   if (/^[a-fA-F0-9]{32,64}$/.test(val)) return "hash";
   if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) return "domain";
-  return null;  // unrecognised - caller must handle
+  return null;  // unrecognised -caller must handle
 }
 
 function getPivotLinks(ioc, iocType) {
@@ -182,7 +182,7 @@ function buildSummaryLines(ioc, iocType, d) {
 
   const geo = d.geo || {};
 
-  // Malware name banner - hash IOC only
+  // Malware name banner -hash IOC only
   if (iocType === "hash") {
     const mb  = d.sources?.MalwareBazaar;
     const name = vt?.name || mb?.malware || tf?.malware || "";
@@ -191,7 +191,7 @@ function buildSummaryLines(ioc, iocType, d) {
     if (mb?.tags?.length) lines.push(`Tags: ${mb.tags.slice(0,5).join(", ")}`);
   }
 
-  // VirusTotal - all IOC types
+  // VirusTotal -all IOC types
   if (vt) {
     const det  = vt.detections ?? 0;
     const eng  = vt.engines    ?? 94;
@@ -204,7 +204,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // AbuseIPDB - IP only
+  // AbuseIPDB -IP only
   if (ab && iocType === "ip") {
     const conf  = ab.confidence ?? ab.score ?? 0;
     const isp   = ab.isp   || ab.domain || geo.isp || "";
@@ -215,7 +215,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // AlienVault OTX - IP + domain
+  // AlienVault OTX -IP + domain
   if (otx) {
     const pulses = otx.pulses ?? 0;
     const note   = otx.note  || (pulses === 0 ? "Known False Positive" : "");
@@ -224,7 +224,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // ThreatFox - IP + domain + hash
+  // ThreatFox -IP + domain + hash
   if (tf && ["ip","domain","hash"].includes(iocType)) {
     const hits    = tf.hits ?? 0;
     const malware = tf.malware || "";
@@ -233,7 +233,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // URLScan - domain + url
+  // URLScan -domain + url
   if (us && ["domain","url"].includes(iocType)) {
     const v = us.verdict || "unknown";
     const s = us.score   ?? 0;
@@ -242,7 +242,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // Google Safe Browsing - domain + url
+  // Google Safe Browsing -domain + url
   if (gsb && ["domain","url"].includes(iocType)) {
     const safe    = gsb.safe ?? true;
     const checked = gsb.checked ?? true;
@@ -279,7 +279,7 @@ function buildSummaryLines(ioc, iocType, d) {
     const mc = d.sources?.MailCheck;
     if (mc) {
       if (mc.rate_limited) {
-        lines.push("MailCheck: Rate limited - try again in 60 seconds");
+        lines.push("MailCheck: Rate limited -try again in 60 seconds");
       } else {
         const parts = [];
         if (mc.disposable)           parts.push("⚠ DISPOSABLE");
@@ -293,7 +293,7 @@ function buildSummaryLines(ioc, iocType, d) {
     const em = d.sources?.Emailable;
     if (em) {
       if (em.no_key) {
-        lines.push("Emailable: API key not set - add EMAILABLE_API_KEY to .env");
+        lines.push("Emailable: API key not set -add EMAILABLE_API_KEY to .env");
       } else {
         const parts = [];
         if (em.state)       parts.push(`State: ${em.state}`);
@@ -328,7 +328,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // Geo - IP only
+  // Geo -IP only
   if (iocType === "ip") {
     const country = geo.country_name || geo.country || "";
     const city    = geo.city || "";
@@ -355,7 +355,7 @@ function PieChart({ data, size = 160, centerLabel = null, centerSub = null }) {
     return (
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle cx={size/2} cy={size/2} r={size/2-14} fill="none" stroke="#1f2937" strokeWidth="18"/>
-        <text x={size/2} y={size/2+5} textAnchor="middle" fontSize="13" fontWeight="700" fill="#374151">-</text>
+        <text x={size/2} y={size/2+5} textAnchor="middle" fontSize="13" fontWeight="700" fill="#374151">—</text>
       </svg>
     );
   }
@@ -494,7 +494,7 @@ function VerdictBanner({ verdict, score }) {
         </svg>
       </div>
       <div>
-        <div style={{ fontSize: 16, fontWeight: 800, color: vs.color }}>{vs.label} - Risk Score {score}/100</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: vs.color }}>{vs.label} -Risk Score {score}/100</div>
         <div style={{ fontSize: 13, color: vs.color, opacity: 0.75, marginTop: 3 }}>{messages[verdict] || messages.benign}</div>
       </div>
 
@@ -521,11 +521,11 @@ function downloadReport(ioc, iocType, d, summaryLines) {
   const mitreRows = (d.mitre || []).map((m) => `<tr><td style="padding:8px 14px;font-size:12px;color:#3B82F6;border-bottom:1px solid #111827;">${m.id||""}</td><td style="padding:8px 14px;font-size:12px;color:#D1D5DB;border-bottom:1px solid #111827;">${m.name||m}</td></tr>`).join("");
   const summBlock = summaryLines.map((l, i) => i === 0 ? `<div style="font-size:16px;font-weight:700;color:#F9FAFB;margin-bottom:10px;">${l}</div>` : `<div style="font-size:13px;font-family:monospace;color:#9CA3AF;padding:5px 0;border-bottom:1px solid #1f2937;">${l}</div>`).join("");
 
-  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>OSINT Report - ${ioc}</title>
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>OSINT Report -${ioc}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0f1a;padding:32px;color:#F9FAFB;}.page{max-width:960px;margin:0 auto;background:#111827;border-radius:16px;border:1px solid #1f2937;overflow:hidden;}.hdr{background:#0C447C;padding:30px 36px;}.hdr h1{font-size:22px;font-weight:700;margin-bottom:5px;color:white;}.hdr p{font-size:12px;color:rgba(255,255,255,.6);}.banner{padding:14px 36px;background:${vs.bg};border-bottom:1px solid ${vs.border};font-size:14px;font-weight:700;color:${vs.color};}.metrics{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #1f2937;}.metric{padding:20px 24px;border-right:1px solid #1f2937;}.metric:last-child{border-right:none;}.ml{font-size:10px;color:#6B7280;margin-bottom:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}.mv{font-size:24px;font-weight:700;color:#F9FAFB;}.sec{padding:24px 36px;border-bottom:1px solid #1f2937;}.sec:last-child{border-bottom:none;}.st{font-size:10px;font-weight:700;color:#4B5563;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;}.badge{padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;background:${vs.bg};color:${vs.color};border:1px solid ${vs.border};}.bar-wrap{background:#1f2937;border-radius:6px;height:10px;overflow:hidden;margin:10px 0 4px;}.bar-fill{height:10px;background:${col};border-radius:6px;width:${sc}%;}table{width:100%;border-collapse:collapse;}.ftr{padding:18px 36px;background:#0d1117;display:flex;justify-content:space-between;font-size:11px;color:#4B5563;}.ai-body{font-size:13px;line-height:1.75;color:#C9D1D9;}.ai-body strong{color:#F9FAFB;font-weight:700;display:block;margin-top:12px;margin-bottom:4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#3B82F6;}.ai-body br{margin-bottom:2px;}</style></head><body>
 <div class="page">
   <div class="hdr"><h1>OSINT Intelligence Report</h1><p>IOC: ${ioc} | Type: ${IOC_TYPES.find(t=>t.id===iocType)?.label||iocType} | ${now}</p></div>
-  <div class="banner">${vs.label.toUpperCase()} - Risk Score ${sc}/100</div>
+  <div class="banner">${vs.label.toUpperCase()} -Risk Score ${sc}/100</div>
   <div class="metrics">
     <div class="metric"><div class="ml">RISK SCORE</div><div class="mv" style="color:${col};">${sc}/100</div></div>
     <div class="metric"><div class="ml">VERDICT</div><div class="mv"><span class="badge">${vs.label}</span></div></div>
@@ -1035,7 +1035,7 @@ function ReportPage({ ioc, iocType, data, onBack }) {
           </div>
         </div>
 
-        {/* AI Analysis section - always rendered */}
+        {/* AI Analysis section -always rendered */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ ...CARD, background: "linear-gradient(135deg, #0d1b2e 0%, #0d1117 100%)", border: "1px solid #3B82F644" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 12, borderBottom: "1px solid #3B82F622", marginBottom: 16 }}>
@@ -1098,7 +1098,7 @@ function ReportPage({ ioc, iocType, data, onBack }) {
 // - MAIN APP ---------------------------------
 
 // - THREAT FEED -------------------------------
-// All AI/Claude calls go through the FastAPI backend - no API keys in frontend
+// All AI/Claude calls go through the FastAPI backend -no API keys in frontend
 
 function ThreatFeedCard({ item, onAnalyze }) {
   const sevColor = item.severity === "CRITICAL" ? "#EF4444" : item.severity === "HIGH" ? "#F59E0B" : "#10B981";
@@ -1139,7 +1139,7 @@ function ThreatFeedCard({ item, onAnalyze }) {
             const typeColors = { ip:"#3B82F6", domain:"#10B981", url:"#F43F5E", hash:"#F59E0B", email:"#A78BFA" };
             return (
               <div style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: "#4B5563", letterSpacing: "0.08em", marginBottom: 6 }}>EXAMPLE IOCs - click to analyse</div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: "#4B5563", letterSpacing: "0.08em", marginBottom: 6 }}>EXAMPLE IOCs -click to analyse</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {analysable.map(({ clean, type }, i) => (
                     <button key={i} onClick={e => { e.stopPropagation(); onAnalyze(clean); }}
@@ -1285,13 +1285,13 @@ function HomePageWithFeed({ setView, setIocType, setIoc, setData, onAnalyze,
           </div>
         </div>
 
-        {/* Live Threat Feed - 6 individual category buttons */}
+        {/* Live Threat Feed -6 individual category buttons */}
         <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 18, overflow: "hidden" }}>
           {/* Header */}
           <div style={{ padding: "16px 20px", borderBottom: "1px solid #1f2937", display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 10, height: 10, borderRadius: "50%", background: feed.length > 0 ? "#10B981" : "#374151", boxShadow: feed.length > 0 ? "0 0 8px #10B981" : "none" }}/>
             <div style={{ fontSize: 13, fontWeight: 800, color: "#F9FAFB", letterSpacing: "0.05em", flex: 1 }}>LIVE THREAT INTELLIGENCE FEED</div>
-            <div style={{ fontSize: 10, color: "#4B5563" }}>{feed.length}/6 loaded - click a category to fetch</div>
+            <div style={{ fontSize: 10, color: "#4B5563" }}>{feed.length}/6 loaded -click a category to fetch</div>
           </div>
 
           {/* 6 category buttons */}
@@ -1328,7 +1328,7 @@ function HomePageWithFeed({ setView, setIocType, setIoc, setData, onAnalyze,
               <div style={{ textAlign: "center", padding: "32px 20px" }}>
                 <div style={{ fontSize: 36, marginBottom: 10 }}>📡</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#F9FAFB", marginBottom: 6 }}>Click any category above to load intelligence</div>
-                <div style={{ fontSize: 12, color: "#4B5563" }}>Each button makes one small API call - no rate limit issues.</div>
+                <div style={{ fontSize: 12, color: "#4B5563" }}>Each button makes one small API call -no rate limit issues.</div>
               </div>
             )}
 
@@ -1367,11 +1367,11 @@ function HomePageWithFeed({ setView, setIocType, setIoc, setData, onAnalyze,
 
 
 
-// - INLINE IOC CHAT - replaces Rule-Based Narrative in the report page ---─
+// - INLINE IOC CHAT -replaces Rule-Based Narrative in the report page ---─
 function InlineIOCChat({ ioc, iocType }) {
   const welcome = `I can see you just analysed **${ioc}** (${(iocType||"").toUpperCase()}).
 
-Ask me anything about it - threat associations, related infrastructure, TTPs, malware family, or recommended response actions.`;
+Ask me anything about it -threat associations, related infrastructure, TTPs, malware family, or recommended response actions.`;
   const [messages, setMessages] = useState([{ role: "assistant", content: welcome }]);
   const [input,    setInput]    = useState("");
   const [loading,  setLoading]  = useState(false);
@@ -1473,7 +1473,7 @@ Ask me anything about it - threat associations, related infrastructure, TTPs, ma
   );
 }
 
-// - REPORT CHAT BUTTON - lives only on the full report page ---------
+// - REPORT CHAT BUTTON -lives only on the full report page ---------
 function ReportChatButton({ ioc, iocType }) {
   const [chatOpen, setChatOpen] = useState(false);
   return (
@@ -1507,12 +1507,12 @@ function ReportChatButton({ ioc, iocType }) {
 }
 
 // - IOC CHAT ASSISTANT ----------------------------
-// All requests go to /web/chat on the FastAPI backend - no client-side API keys
+// All requests go to /web/chat on the FastAPI backend -no client-side API keys
 
 function IOCChat({ onClose, ioc = "", iocType = "" }) {
   const welcome = ioc
-    ? `I can see you just analysed **${ioc}** (${iocType.toUpperCase()}).\n\nAsk me anything about it - threat associations, related infrastructure, TTPs, malware family, or recommended response actions.`
-    : "Hi! Ask me anything about the IOC you analysed - threat intel, malware families, CVEs, or response actions.";
+    ? `I can see you just analysed **${ioc}** (${iocType.toUpperCase()}).\n\nAsk me anything about it -threat associations, related infrastructure, TTPs, malware family, or recommended response actions.`
+    : "Hi! Ask me anything about the IOC you analysed -threat intel, malware families, CVEs, or response actions.";
   const [messages, setMessages] = useState([{ role: "assistant", content: welcome }]);
   const [input,   setInput]   = useState("");
   const [loading, setLoading] = useState(false);
@@ -1629,7 +1629,7 @@ export default function App() {
 }
 
 function MainApp({ onLogout }) {
-  // - Feed state - lifted here so it persists when navigating away -----
+  // - Feed state -lifted here so it persists when navigating away -----
   const FEED_CATS = [
     { id: "malware_1", label: "Malware #1",          icon: "🦠", color: "#EF4444" },
     { id: "cve_1",     label: "CVE / Zero-Day",       icon: "🔓", color: "#F97316" },
@@ -1648,7 +1648,7 @@ function MainApp({ onLogout }) {
     try {
       const res = await fetch(`${API_BASE}/web/threat-feed/category/${catId}`);
       if (res.status === 429) {
-        setFeedErrors(prev => ({ ...prev, [catId]: "Rate limited - wait 30s then retry" }));
+        setFeedErrors(prev => ({ ...prev, [catId]: "Rate limited -wait 30s then retry" }));
         return;
       }
       if (!res.ok) {
@@ -1693,7 +1693,7 @@ function MainApp({ onLogout }) {
     try {
       const res = await axios.get(`${API_BASE}/ioc/analyze`, { params: { value: trimmed }, headers: authHeaders() });
       setData(res.data);
-      setDetectedType(detected);  // set again after data arrives - guaranteed sync
+      setDetectedType(detected);  // set again after data arrives -guaranteed sync
     } catch (err2) {
       console.error(err2);
       const msg = err2?.response?.data?.detail || "Analysis failed. Please check the value and try again.";
@@ -1978,7 +1978,7 @@ function MainApp({ onLogout }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// AUTH GATE - Register / Login / Verify / Forgot Password / Reset Password
+// AUTH GATE -Register / Login / Verify / Forgot Password / Reset Password
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function PasswordStrengthBar({ password }) {
@@ -2111,7 +2111,7 @@ function RegisterScreen({ onSwitch }) {
       } else {
         setDone(true);
       }
-    } catch { setError("Network error - is the server running?"); }
+    } catch { setError("Network error -is the server running?"); }
     finally   { setLoading(false); }
   };
 
@@ -2170,7 +2170,7 @@ function VerifyEmailScreen({ initialEmail, onSwitch }) {
         body: JSON.stringify({ email, code }),
       });
       const d = await r.json();
-      if (!r.ok) setError(d.detail || "Verification failed");
+      if (!r.ok) { const msg = typeof d.detail === "string" ? d.detail : "Verification failed"; setError(msg); }
       else { setSuccess(d.message); setTimeout(() => onSwitch("login"), 1500); }
     } catch { setError("Network error"); }
     finally   { setLoading(false); }
@@ -2184,7 +2184,7 @@ function VerifyEmailScreen({ initialEmail, onSwitch }) {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      setSuccess("New code sent - check your email");
+      setSuccess("New code sent -check your email");
     } catch { setError("Network error"); }
     finally   { setLoading(false); }
   };
@@ -2225,14 +2225,14 @@ function LoginScreen({ onSwitch, onMFA }) {
         // detail can be a string, object, or array (422 validation errors)
         let msg = "Login failed. Please try again.";
         if (typeof d.detail === "string") msg = d.detail;
-        else if (Array.isArray(d.detail)) msg = "Invalid request - please check your input.";
+        else if (Array.isArray(d.detail)) msg = "Invalid request -please check your input.";
         else if (d.detail?.message) msg = d.detail.message;
         setError(msg);
       } else {
         onMFA(email);
       }
     } catch (e) {
-      setError("Network error - is the server running?");
+      setError("Network error -is the server running?");
     }
     finally { setLoading(false); }
   };
@@ -2270,7 +2270,7 @@ function MFAScreen({ email, onAuth, onSwitch }) {
         body: JSON.stringify({ email, code }),
       });
       const d = await r.json();
-      if (!r.ok) setError(d.detail || "Invalid code");
+      if (!r.ok) { const msg = typeof d.detail === "string" ? d.detail : "Invalid code"; setError(msg); }
       else { setToken(d.access_token); onAuth(); }
     } catch { setError("Network error"); }
     finally   { setLoading(false); }
@@ -2308,8 +2308,10 @@ function ForgotPasswordScreen({ onSwitch }) {
         body: JSON.stringify({ email }),
       });
       const d = await r.json();
-      if (!r.ok) setError(d.detail || "Error");
-      else setSent(true);
+      if (!r.ok) {
+        const msg = typeof d.detail === "string" ? d.detail : "Request failed -please try again.";
+        setError(msg);
+      } else setSent(true);
     } catch { setError("Network error"); }
     finally   { setLoading(false); }
   };
@@ -2356,9 +2358,13 @@ function ResetPasswordScreen({ token, onSwitch }) {
       });
       const d = await r.json();
       if (!r.ok) {
-        const msg = d.detail?.message || d.detail || "Reset failed";
-        const issues = d.detail?.issues || [];
-        setError(issues.length ? `${msg}: ${issues.join(", ")}` : msg);
+        let msg = "Reset failed -please try again.";
+        if (typeof d.detail === "string") msg = d.detail;
+        else if (d.detail?.message) {
+          const issues = d.detail.issues || [];
+          msg = issues.length ? `${d.detail.message}: ${issues.join(", ")}` : d.detail.message;
+        }
+        setError(msg);
       } else setDone(true);
     } catch { setError("Network error"); }
     finally   { setLoading(false); }
@@ -2389,7 +2395,7 @@ function ResetPasswordScreen({ token, onSwitch }) {
   );
 }
 
-// - AuthGate - orchestrates all auth screens -----------------
+// - AuthGate -orchestrates all auth screens -----------------
 function AuthGate({ onAuth }) {
   // Check for reset token in URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -2482,7 +2488,7 @@ function SiemKeysPage({ onBack }) {
 
         {/* Intro */}
         <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 14, padding: "20px 24px", marginBottom: 24 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#F9FAFB", marginBottom: 8 }}>REST API Pull - SIEM Integration</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#F9FAFB", marginBottom: 8 }}>REST API Pull -SIEM Integration</div>
           <div style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.8, marginBottom: 16 }}>
             Generate an API key below and use it to submit IOCs programmatically from Splunk, Elastic SIEM, Microsoft Sentinel, IBM QRadar, or any REST-capable SOAR platform. Up to 10 IOCs per request, 60 requests/minute per key.
           </div>
@@ -2495,10 +2501,10 @@ function SiemKeysPage({ onBack }) {
           </div>
         </div>
 
-        {/* New key banner - shown once */}
+        {/* New key banner -shown once */}
         {newKey && (
           <div style={{ background: "#0a2e1a", border: "1px solid #065f26", borderRadius: 12, padding: "20px 24px", marginBottom: 24 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#34d399", marginBottom: 8 }}>✓ API Key Created - Copy it now</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#34d399", marginBottom: 8 }}>✓ API Key Created -Copy it now</div>
             <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 12 }}>This key will not be shown again. Store it securely in your SIEM or secrets manager.</div>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <div style={{ flex: 1, background: "#111827", border: "1px solid #1f2937", borderRadius: 8, padding: "10px 14px", fontFamily: "monospace", fontSize: 13, color: "#34d399", wordBreak: "break-all" }}>
