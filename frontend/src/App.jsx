@@ -3,7 +3,7 @@ import axios from "axios";
 
 const API_BASE = "http://127.0.0.1:8000";
 
-// -- Auth token helpers ----------------------------------------------------
+// - Auth token helpers --------------------------
 const getToken  = () => localStorage.getItem("osint_token");
 const setToken  = (t) => localStorage.setItem("osint_token", t);
 const clearToken= () => localStorage.removeItem("osint_token");
@@ -93,7 +93,7 @@ function detectIOC(v) {
   if (/^(http|https):\/\//.test(val)) return "url";
   if (/^[a-fA-F0-9]{32,64}$/.test(val)) return "hash";
   if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) return "domain";
-  return "ip";
+  return null;  // unrecognised - caller must handle
 }
 
 function getPivotLinks(ioc, iocType) {
@@ -348,7 +348,7 @@ function copySummary(lines) {
   navigator.clipboard?.writeText(lines.join("\n"));
 }
 
-// -- DONUT CHART ---------------------------------------------------------------
+// - DONUT CHART -------------------------------─
 function PieChart({ data, size = 160, centerLabel = null, centerSub = null }) {
   const total = data.reduce((s, d) => s + d.value, 0);
   if (!total) {
@@ -380,7 +380,7 @@ function PieChart({ data, size = 160, centerLabel = null, centerSub = null }) {
   );
 }
 
-// -- CONFIDENCE DONUT ----------------------------------------------------------
+// - CONFIDENCE DONUT -----------------------------
 function ConfidenceDonut({ confidence, size = 120 }) {
   const pct = Math.min(100, Math.max(0, confidence));
   const cx = size / 2, cy = size / 2, r = size / 2 - 12;
@@ -408,7 +408,7 @@ function ConfidenceDonut({ confidence, size = 120 }) {
   );
 }
 
-// -- BAR CHART -----------------------------------------------------------------
+// - BAR CHART --------------------------------─
 function BarChart({ sources, compact = false }) {
   const entries = Object.entries(sources);
   if (!entries.length) return (
@@ -446,7 +446,7 @@ function BarChart({ sources, compact = false }) {
   );
 }
 
-// -- SCORE GAUGE ---------------------------------------------------------------
+// - SCORE GAUGE -------------------------------─
 function ScoreGauge({ score, size = 200 }) {
   const cx = size / 2, cy = size / 2 + 14, r = size / 2 - 22;
   const start = Math.PI * 0.78, end = Math.PI * 2.22;
@@ -476,7 +476,7 @@ function ScoreGauge({ score, size = 200 }) {
   );
 }
 
-// -- VERDICT BANNER ------------------------------------------------------------
+// - VERDICT BANNER ------------------------------
 function VerdictBanner({ verdict, score }) {
   const vs = verdictStyle(verdict);
   const messages = {
@@ -502,7 +502,7 @@ function VerdictBanner({ verdict, score }) {
   );
 }
 
-// -- DOWNLOAD REPORT -----------------------------------------------------------
+// - DOWNLOAD REPORT -----------------------------─
 function downloadReport(ioc, iocType, d, summaryLines) {
   const aiAnalysis = d.ai_analysis || "";
   const analystAssessment = d.summary || "";
@@ -551,7 +551,7 @@ function downloadReport(ioc, iocType, d, summaryLines) {
 
 
 
-// -- RAW API RESPONSE TABS -----------------------------------------------------
+// - RAW API RESPONSE TABS --------------------------─
 // One tab per source + one "Full Response" tab
 function RawResponseTabs({ sources = {}, raw = {} }) {
   const [activeTab, setActiveTab] = useState("full");
@@ -625,7 +625,7 @@ function CopyButton({ content }) {
   );
 }
 
-// -- INTELLIGENCE FRAMEWORK TABS ----------------------------------------------
+// - INTELLIGENCE FRAMEWORK TABS -----------------------
 // Tabbed section: MITRE ATT&CK | OWASP Top 10 | Tags & Pivots
 function IntelFrameworkTabs({ mitre = [], owasp = [], tags = [], pivotLinks = [] }) {
   const [tab, setTab] = useState("mitre");
@@ -814,7 +814,7 @@ function IntelFrameworkTabs({ mitre = [], owasp = [], tags = [], pivotLinks = []
   );
 }
 
-// -- AI ANALYSIS RENDERER -----------------------------------------------------
+// - AI ANALYSIS RENDERER --------------------------─
 // Parses Claude's markdown bold headers (**Header**) into styled sections
 function AIAnalysisRenderer({ content }) {
   if (!content) return null;
@@ -906,7 +906,7 @@ function AIAnalysisRenderer({ content }) {
 
 
 
-// -- REPORT PAGE ---------------------------------------------------------------
+// - REPORT PAGE -------------------------------─
 function ReportPage({ ioc, iocType, data, onBack }) {
   const d            = mapResponse(data, iocType);
   const summaryLines = buildSummaryLines(ioc, iocType, d);
@@ -1095,9 +1095,9 @@ function ReportPage({ ioc, iocType, data, onBack }) {
   );
 }
 
-// -- MAIN APP ------------------------------------------------------------------
+// - MAIN APP ---------------------------------
 
-// -- THREAT FEED --------------------------------------------------------------
+// - THREAT FEED -------------------------------
 // All AI/Claude calls go through the FastAPI backend - no API keys in frontend
 
 function ThreatFeedCard({ item, onAnalyze }) {
@@ -1367,7 +1367,7 @@ function HomePageWithFeed({ setView, setIocType, setIoc, setData, onAnalyze,
 
 
 
-// -- INLINE IOC CHAT - replaces Rule-Based Narrative in the report page -------
+// - INLINE IOC CHAT - replaces Rule-Based Narrative in the report page ---─
 function InlineIOCChat({ ioc, iocType }) {
   const welcome = `I can see you just analysed **${ioc}** (${(iocType||"").toUpperCase()}).
 
@@ -1473,7 +1473,7 @@ Ask me anything about it - threat associations, related infrastructure, TTPs, ma
   );
 }
 
-// -- REPORT CHAT BUTTON - lives only on the full report page ------------------
+// - REPORT CHAT BUTTON - lives only on the full report page ---------
 function ReportChatButton({ ioc, iocType }) {
   const [chatOpen, setChatOpen] = useState(false);
   return (
@@ -1506,7 +1506,7 @@ function ReportChatButton({ ioc, iocType }) {
   );
 }
 
-// -- IOC CHAT ASSISTANT --------------------------------------------------------
+// - IOC CHAT ASSISTANT ----------------------------
 // All requests go to /web/chat on the FastAPI backend - no client-side API keys
 
 function IOCChat({ onClose, ioc = "", iocType = "" }) {
@@ -1621,7 +1621,7 @@ function IOCChat({ onClose, ioc = "", iocType = "" }) {
 }
 
 
-// -- Auth gate ----------------------------------------------------------------
+// - Auth gate --------------------------------
 export default function App() {
   const [authed, setAuthed] = useState(() => !!getToken());
   if (!authed) return <AuthGate onAuth={() => setAuthed(true)} />;
@@ -1629,7 +1629,7 @@ export default function App() {
 }
 
 function MainApp({ onLogout }) {
-  // -- Feed state - lifted here so it persists when navigating away ----------
+  // - Feed state - lifted here so it persists when navigating away -----
   const FEED_CATS = [
     { id: "malware_1", label: "Malware #1",          icon: "🦠", color: "#EF4444" },
     { id: "cve_1",     label: "CVE / Zero-Day",       icon: "🔓", color: "#F97316" },
@@ -1663,7 +1663,7 @@ function MainApp({ onLogout }) {
       setFeedLoading(prev => ({ ...prev, [catId]: false }));
     }
   };
-  // -------------------------------------------------------------------------
+  // ------------------------------------─
 
   const [view,            setView]           = useState("home");
   const [iocType,         setIocType]        = useState("ip");
@@ -1682,6 +1682,10 @@ function MainApp({ onLogout }) {
     if (err) { setValidationError(err); return; }
     setValidationError(null);
     const detected = detectIOC(trimmed);
+    if (!detected) {
+      setValidationError("Unrecognised format. Please enter a valid IP, domain, URL, hash, or email address.");
+      return;
+    }
     setIocType(detected);
     setDetectedType(detected);  // store in sync with data
     setLoading(true);
@@ -1692,7 +1696,9 @@ function MainApp({ onLogout }) {
       setDetectedType(detected);  // set again after data arrives - guaranteed sync
     } catch (err2) {
       console.error(err2);
-      setValidationError("Analysis failed - check the API is running.");
+      const msg = err2?.response?.data?.detail || "Analysis failed. Please check the value and try again.";
+      setValidationError(typeof msg === "string" ? msg : "Analysis failed. Please check the value and try again.");
+      setData(null);
     }
     setLoading(false);
   };
@@ -1709,10 +1715,10 @@ function MainApp({ onLogout }) {
   })() : [];
 
   if (view === "report" && d) return <ReportPage ioc={ioc} iocType={detectedType} data={data} onBack={() => setView("analyze")}/>;
-  // -- SIEM PAGE -------------------------------------------------------------
+  // - SIEM PAGE ------------------------------─
   if (view === "siem") return <SiemKeysPage onBack={() => setView("home")} />;
 
-  // -- HOME PAGE --------------------------------------------------------------
+  // - HOME PAGE -------------------------------
   if (view === "home") return (
     <HomePageWithFeed
       setView={setView}
@@ -1728,7 +1734,7 @@ function MainApp({ onLogout }) {
     />
   );
 
-  // -- DASHBOARD VIEW ---------------------------------------------------------
+  // - DASHBOARD VIEW ----------------------------─
   return (
     <div style={{ minHeight: "100vh", background: "#0a0f1a", fontFamily: "system-ui, sans-serif" }}>
       {/* Topbar */}
@@ -2078,7 +2084,7 @@ function AuthSuccess({ msg }) {
   return <div style={{ padding: "10px 14px", background: "#0a2e1a", border: "1px solid #065f26", borderRadius: 8, fontSize: 13, color: "#34d399", marginBottom: 16 }}>{msg}</div>;
 }
 
-// -- Register Screen -----------------------------------------------------------
+// - Register Screen -----------------------------─
 function RegisterScreen({ onSwitch }) {
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
@@ -2146,7 +2152,7 @@ function RegisterScreen({ onSwitch }) {
   );
 }
 
-// -- Verify Email Screen -------------------------------------------------------
+// - Verify Email Screen ---------------------------─
 function VerifyEmailScreen({ initialEmail, onSwitch }) {
   const [email, setEmail] = useState(initialEmail || "");
   const [code,  setCode]  = useState("");
@@ -2198,7 +2204,7 @@ function VerifyEmailScreen({ initialEmail, onSwitch }) {
   );
 }
 
-// -- Login Screen --------------------------------------------------------------
+// - Login Screen -------------------------------
 function LoginScreen({ onSwitch, onMFA }) {
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
@@ -2215,10 +2221,20 @@ function LoginScreen({ onSwitch, onMFA }) {
         body: JSON.stringify({ email, password }),
       });
       const d = await r.json();
-      if (!r.ok) setError(d.detail || "Login failed");
-      else onMFA(email);
-    } catch { setError("Network error - is the server running?"); }
-    finally   { setLoading(false); }
+      if (!r.ok) {
+        // detail can be a string, object, or array (422 validation errors)
+        let msg = "Login failed. Please try again.";
+        if (typeof d.detail === "string") msg = d.detail;
+        else if (Array.isArray(d.detail)) msg = "Invalid request - please check your input.";
+        else if (d.detail?.message) msg = d.detail.message;
+        setError(msg);
+      } else {
+        onMFA(email);
+      }
+    } catch (e) {
+      setError("Network error - is the server running?");
+    }
+    finally { setLoading(false); }
   };
 
   return (
@@ -2238,7 +2254,7 @@ function LoginScreen({ onSwitch, onMFA }) {
   );
 }
 
-// -- MFA Screen ----------------------------------------------------------------
+// - MFA Screen --------------------------------
 function MFAScreen({ email, onAuth, onSwitch }) {
   const [code,    setCode]    = useState("");
   const [loading, setLoading] = useState(false);
@@ -2275,7 +2291,7 @@ function MFAScreen({ email, onAuth, onSwitch }) {
   );
 }
 
-// -- Forgot Password Screen ----------------------------------------------------
+// - Forgot Password Screen --------------------------
 function ForgotPasswordScreen({ onSwitch }) {
   const [email,   setEmail]   = useState("");
   const [loading, setLoading] = useState(false);
@@ -2320,7 +2336,7 @@ function ForgotPasswordScreen({ onSwitch }) {
   );
 }
 
-// -- Reset Password Screen (reached from email link) ---------------------------
+// - Reset Password Screen (reached from email link) -------------─
 function ResetPasswordScreen({ token, onSwitch }) {
   const [password, setPassword] = useState("");
   const [confirm,  setConfirm]  = useState("");
@@ -2373,7 +2389,7 @@ function ResetPasswordScreen({ token, onSwitch }) {
   );
 }
 
-// -- AuthGate - orchestrates all auth screens ----------------------------------
+// - AuthGate - orchestrates all auth screens -----------------
 function AuthGate({ onAuth }) {
   // Check for reset token in URL
   const urlParams = new URLSearchParams(window.location.search);
