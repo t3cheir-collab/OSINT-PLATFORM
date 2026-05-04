@@ -1174,7 +1174,7 @@ function FeatureAndStats() {
   const [active, setActive] = useState(null);
 
   const items = [
-    { icon: "🔍", title: "Multi-Source Enrichment",    stat: "8+",   statLabel: "Intel Sources",   color: "#3B82F6", glow: "#3B82F633",
+    { icon: "🔍", title: "Multi-Source Enrichment",    stat: "10+",   statLabel: "Intel Sources",   color: "#3B82F6", glow: "#3B82F633",
       desc: "Simultaneous queries to VirusTotal, AbuseIPDB, OTX, ThreatFox, Shodan, MalwareBazaar, Google Safe Browsing and more all normalised into a single unified verdict in under 20 seconds." },
     { icon: "🎯", title: "Five IOC Types",              stat: "5",    statLabel: "IOC Types",        color: "#10B981", glow: "#10B98133",
       desc: "IP addresses, domains, URLs, file hashes, and email addresses each with dedicated enrichment pipelines and source sets optimised for that specific indicator type." },
