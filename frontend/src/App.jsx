@@ -47,8 +47,8 @@ const SOURCE_COLORS = {
 };
 
 // Exactly 4 canonical source slots per IOC type
-// These drive the intelligence sources panel - always shows 4 rows
-// Tool matrix - matches backend pipeline exactly per IOC type
+// These drive the intelligence sources panel always shows 4 rows
+// Tool matrix matches backend pipeline exactly per IOC type
 const SOURCE_SLOTS = {
   ip:     ["VirusTotal", "AbuseIPDB",    "OTX",     "Shodan",         "ThreatFox"],
   domain: ["VirusTotal", "URLScan",      "GSB",     "OTX",            "WHOIS"],
@@ -71,11 +71,11 @@ const PTITLE = { fontSize: 10, fontWeight: 700, color: "#4B5563", letterSpacing:
 
 // Validation rules: returns null if valid, error string if invalid
 const IOC_VALIDATORS = {
-  ip:     { re: /^\d{1,3}(\.\d{1,3}){3}$/,                     msg: "Invalid IP address - expected format: 192.168.1.1" },
-  domain: { re: /^[a-zA-Z0-9][a-zA-Z0-9.-]{0,253}\.[a-zA-Z]{2,}$/, msg: "Invalid domain - expected format: example.com" },
-  hash:   { re: /^[a-fA-F0-9]{32}$|^[a-fA-F0-9]{40}$|^[a-fA-F0-9]{64}$/, msg: "Invalid hash - expected MD5 (32), SHA1 (40), or SHA256 (64) hex characters" },
-  url:    { re: /^https?:\/\/.+\..+/,                            msg: "Invalid URL - must start with http:// or https://" },
-  email:  { re: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,               msg: "Invalid email address - expected format: user@example.com" },
+  ip:     { re: /^\d{1,3}(\.\d{1,3}){3}$/,                     msg: "Invalid IP address expected format: 192.168.1.1" },
+  domain: { re: /^[a-zA-Z0-9][a-zA-Z0-9.-]{0,253}\.[a-zA-Z]{2,}$/, msg: "Invalid domain expected format: example.com" },
+  hash:   { re: /^[a-fA-F0-9]{32}$|^[a-fA-F0-9]{40}$|^[a-fA-F0-9]{64}$/, msg: "Invalid hash expected MD5 (32), SHA1 (40), or SHA256 (64) hex characters" },
+  url:    { re: /^https?:\/\/.+\..+/,                            msg: "Invalid URL must start with http:// or https://" },
+  email:  { re: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,               msg: "Invalid email address expected format: user@example.com" },
 };
 
 function validateIOC(value, iocType) {
@@ -93,7 +93,7 @@ function detectIOC(v) {
   if (/^(http|https):\/\//.test(val)) return "url";
   if (/^[a-fA-F0-9]{32,64}$/.test(val)) return "hash";
   if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) return "domain";
-  return null;  // unrecognised - caller must handle
+  return null;  // unrecognised caller must handle
 }
 
 function getPivotLinks(ioc, iocType) {
@@ -182,7 +182,7 @@ function buildSummaryLines(ioc, iocType, d) {
 
   const geo = d.geo || {};
 
-  // Malware name banner - hash IOC only
+  // Malware name banner hash IOC only
   if (iocType === "hash") {
     const mb  = d.sources?.MalwareBazaar;
     const name = vt?.name || mb?.malware || tf?.malware || "";
@@ -191,7 +191,7 @@ function buildSummaryLines(ioc, iocType, d) {
     if (mb?.tags?.length) lines.push(`Tags: ${mb.tags.slice(0,5).join(", ")}`);
   }
 
-  // VirusTotal - all IOC types
+  // VirusTotal all IOC types
   if (vt) {
     const det  = vt.detections ?? 0;
     const eng  = vt.engines    ?? 94;
@@ -204,7 +204,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // AbuseIPDB - IP only
+  // AbuseIPDB IP only
   if (ab && iocType === "ip") {
     const conf  = ab.confidence ?? ab.score ?? 0;
     const isp   = ab.isp   || ab.domain || geo.isp || "";
@@ -215,7 +215,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // AlienVault OTX - IP + domain
+  // AlienVault OTX IP + domain
   if (otx) {
     const pulses = otx.pulses ?? 0;
     const note   = otx.note  || (pulses === 0 ? "Known False Positive" : "");
@@ -224,7 +224,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // ThreatFox - IP + domain + hash
+  // ThreatFox IP + domain + hash
   if (tf && ["ip","domain","hash"].includes(iocType)) {
     const hits    = tf.hits ?? 0;
     const malware = tf.malware || "";
@@ -233,7 +233,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // URLScan - domain + url
+  // URLScan domain + url
   if (us && ["domain","url"].includes(iocType)) {
     const v = us.verdict || "unknown";
     const s = us.score   ?? 0;
@@ -242,7 +242,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // Google Safe Browsing - domain + url
+  // Google Safe Browsing domain + url
   if (gsb && ["domain","url"].includes(iocType)) {
     const safe    = gsb.safe ?? true;
     const checked = gsb.checked ?? true;
@@ -279,7 +279,7 @@ function buildSummaryLines(ioc, iocType, d) {
     const mc = d.sources?.MailCheck;
     if (mc) {
       if (mc.rate_limited) {
-        lines.push("MailCheck: Rate limited - try again in 60 seconds");
+        lines.push("MailCheck: Rate limited try again in 60 seconds");
       } else {
         const parts = [];
         if (mc.disposable)           parts.push("⚠ DISPOSABLE");
@@ -293,7 +293,7 @@ function buildSummaryLines(ioc, iocType, d) {
     const em = d.sources?.Emailable;
     if (em) {
       if (em.no_key) {
-        lines.push("Emailable: API key not set - add EMAILABLE_API_KEY to .env");
+        lines.push("Emailable: API key not set add EMAILABLE_API_KEY to .env");
       } else {
         const parts = [];
         if (em.state)       parts.push(`State: ${em.state}`);
@@ -328,7 +328,7 @@ function buildSummaryLines(ioc, iocType, d) {
     lines.push(line);
   }
 
-  // Geo - IP only
+  // Geo IP only
   if (iocType === "ip") {
     const country = geo.country_name || geo.country || "";
     const city    = geo.city || "";
@@ -355,7 +355,7 @@ function PieChart({ data, size = 160, centerLabel = null, centerSub = null }) {
     return (
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle cx={size/2} cy={size/2} r={size/2-14} fill="none" stroke="#1f2937" strokeWidth="18"/>
-        <text x={size/2} y={size/2+5} textAnchor="middle" fontSize="13" fontWeight="700" fill="#374151">-</text>
+        <text x={size/2} y={size/2+5} textAnchor="middle" fontSize="13" fontWeight="700" fill="#374151">—</text>
       </svg>
     );
   }
@@ -494,7 +494,7 @@ function VerdictBanner({ verdict, score }) {
         </svg>
       </div>
       <div>
-        <div style={{ fontSize: 16, fontWeight: 800, color: vs.color }}>{vs.label} - Risk Score {score}/100</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: vs.color }}>{vs.label} Risk Score {score}/100</div>
         <div style={{ fontSize: 13, color: vs.color, opacity: 0.75, marginTop: 3 }}>{messages[verdict] || messages.benign}</div>
       </div>
 
@@ -521,11 +521,11 @@ function downloadReport(ioc, iocType, d, summaryLines) {
   const mitreRows = (d.mitre || []).map((m) => `<tr><td style="padding:8px 14px;font-size:12px;color:#3B82F6;border-bottom:1px solid #111827;">${m.id||""}</td><td style="padding:8px 14px;font-size:12px;color:#D1D5DB;border-bottom:1px solid #111827;">${m.name||m}</td></tr>`).join("");
   const summBlock = summaryLines.map((l, i) => i === 0 ? `<div style="font-size:16px;font-weight:700;color:#F9FAFB;margin-bottom:10px;">${l}</div>` : `<div style="font-size:13px;font-family:monospace;color:#9CA3AF;padding:5px 0;border-bottom:1px solid #1f2937;">${l}</div>`).join("");
 
-  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>ThreatLattice Report - ${ioc}</title>
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>ThreatLattice Report ${ioc}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0f1a;padding:32px;color:#F9FAFB;}.page{max-width:960px;margin:0 auto;background:#111827;border-radius:16px;border:1px solid #1f2937;overflow:hidden;}.hdr{background:#0C447C;padding:30px 36px;}.hdr h1{font-size:22px;font-weight:700;margin-bottom:5px;color:white;}.hdr p{font-size:12px;color:rgba(255,255,255,.6);}.banner{padding:14px 36px;background:${vs.bg};border-bottom:1px solid ${vs.border};font-size:14px;font-weight:700;color:${vs.color};}.metrics{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #1f2937;}.metric{padding:20px 24px;border-right:1px solid #1f2937;}.metric:last-child{border-right:none;}.ml{font-size:10px;color:#6B7280;margin-bottom:6px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}.mv{font-size:24px;font-weight:700;color:#F9FAFB;}.sec{padding:24px 36px;border-bottom:1px solid #1f2937;}.sec:last-child{border-bottom:none;}.st{font-size:10px;font-weight:700;color:#4B5563;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;}.badge{padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;background:${vs.bg};color:${vs.color};border:1px solid ${vs.border};}.bar-wrap{background:#1f2937;border-radius:6px;height:10px;overflow:hidden;margin:10px 0 4px;}.bar-fill{height:10px;background:${col};border-radius:6px;width:${sc}%;}table{width:100%;border-collapse:collapse;}.ftr{padding:18px 36px;background:#0d1117;display:flex;justify-content:space-between;font-size:11px;color:#4B5563;}.ai-body{font-size:13px;line-height:1.75;color:#C9D1D9;}.ai-body strong{color:#F9FAFB;font-weight:700;display:block;margin-top:12px;margin-bottom:4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#3B82F6;}.ai-body br{margin-bottom:2px;}</style></head><body>
 <div class="page">
   <div class="hdr"><h1>ThreatLattice Threat Report</h1><p>IOC: ${ioc} | Type: ${IOC_TYPES.find(t=>t.id===iocType)?.label||iocType} | ${now}</p></div>
-  <div class="banner">${vs.label.toUpperCase()} - Risk Score ${sc}/100</div>
+  <div class="banner">${vs.label.toUpperCase()} Risk Score ${sc}/100</div>
   <div class="metrics">
     <div class="metric"><div class="ml">RISK SCORE</div><div class="mv" style="color:${col};">${sc}/100</div></div>
     <div class="metric"><div class="ml">VERDICT</div><div class="mv"><span class="badge">${vs.label}</span></div></div>
@@ -1036,7 +1036,7 @@ function ReportPage({ ioc, iocType, data, onBack }) {
           </div>
         </div>
 
-        {/* AI Analysis section - always rendered */}
+        {/* AI Analysis section always rendered */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ ...CARD, background: "linear-gradient(135deg, #0d1b2e 0%, #0d1117 100%)", border: "1px solid #3B82F644" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 12, borderBottom: "1px solid #3B82F622", marginBottom: 16 }}>
@@ -1099,7 +1099,7 @@ function ReportPage({ ioc, iocType, data, onBack }) {
 // - MAIN APP ---------------------------------
 
 // - THREAT FEED -------------------------------
-// All AI/Claude calls go through the FastAPI backend - no API keys in frontend
+// All AI/Claude calls go through the FastAPI backend no API keys in frontend
 
 function ThreatFeedCard({ item, onAnalyze }) {
   const sevColor = item.severity === "CRITICAL" ? "#EF4444" : item.severity === "HIGH" ? "#F59E0B" : "#10B981";
@@ -1140,7 +1140,7 @@ function ThreatFeedCard({ item, onAnalyze }) {
             const typeColors = { ip:"#3B82F6", domain:"#10B981", url:"#F43F5E", hash:"#F59E0B", email:"#A78BFA" };
             return (
               <div style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: "#4B5563", letterSpacing: "0.08em", marginBottom: 6 }}>EXAMPLE IOCs - click to analyse</div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: "#4B5563", letterSpacing: "0.08em", marginBottom: 6 }}>EXAMPLE IOCs click to analyse</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {analysable.map(({ clean, type }, i) => (
                     <button key={i} onClick={e => { e.stopPropagation(); onAnalyze(clean); }}
@@ -1169,19 +1169,19 @@ function ThreatFeedCard({ item, onAnalyze }) {
 }
 
 
-// - FEATURE + STATS - combined 4-column row -----------------─
+// - FEATURE + STATS combined 4-column row -----------------─
 function FeatureAndStats() {
   const [active, setActive] = useState(null);
 
   const items = [
     { icon: "🔍", title: "Multi-Source Enrichment",    stat: "8+",   statLabel: "Intel Sources",   color: "#3B82F6", glow: "#3B82F633",
-      desc: "Simultaneous queries to VirusTotal, AbuseIPDB, OTX, ThreatFox, Shodan, MalwareBazaar, Google Safe Browsing and more - all normalised into a single unified verdict in under 20 seconds." },
+      desc: "Simultaneous queries to VirusTotal, AbuseIPDB, OTX, ThreatFox, Shodan, MalwareBazaar, Google Safe Browsing and more all normalised into a single unified verdict in under 20 seconds." },
     { icon: "🎯", title: "Five IOC Types",              stat: "5",    statLabel: "IOC Types",        color: "#10B981", glow: "#10B98133",
-      desc: "IP addresses, domains, URLs, file hashes, and email addresses - each with dedicated enrichment pipelines and source sets optimised for that specific indicator type." },
+      desc: "IP addresses, domains, URLs, file hashes, and email addresses each with dedicated enrichment pipelines and source sets optimised for that specific indicator type." },
     { icon: "🤖", title: "Analyst Decision Support",    stat: "AI",   statLabel: "Threat Analysis",  color: "#A78BFA", glow: "#A78BFA33",
       desc: "AI-generated threat narratives powered by Claude, MITRE ATT&CK technique mapping, OWASP Top 10 classification, confidence scoring, and tiered recommended actions." },
     { icon: "📡", title: "Live Threat Feed",            stat: "LIVE", statLabel: "Threat Feed",      color: "#F59E0B", glow: "#F59E0B33",
-      desc: "Real-time threat intelligence across malware, CVEs, zero-days, threat actors, and breaches - powered by Claude AI with live web search, cached every 30 minutes." },
+      desc: "Real-time threat intelligence across malware, CVEs, zero-days, threat actors, and breaches powered by Claude AI with live web search, cached every 30 minutes." },
   ];
 
   return (
@@ -1295,7 +1295,7 @@ function HomePageWithFeed({ setView, setIocType, setIoc, setData, onAnalyze,
           </button>
         </div>
 
-        {/* Hero - centred title + description */}
+        {/* Hero centred title + description */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ background: "#1e3a5f", border: "1px solid #3B82F644", borderRadius: 24, padding: "5px 14px", fontSize: 10, color: "#60A5FA", fontWeight: 800, letterSpacing: "0.1em", marginBottom: 18, display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981", display: "inline-block", boxShadow: "0 0 6px #10B981" }}/>
@@ -1306,7 +1306,7 @@ function HomePageWithFeed({ setView, setIocType, setIoc, setData, onAnalyze,
             <span style={{ color: "#3B82F6", textShadow: "0 0 40px #3B82F666" }}>Intelligence.</span>
           </h1>
           <p style={{ fontSize: 15, color: "#C9D3DC", lineHeight: 1.8, maxWidth: 580, margin: "0 auto" }}>
-            ThreatLattice is an analyst-grade IOC enrichment platform that correlates indicators across eight intelligence sources in real time, maps findings to MITRE ATT&CK, and generates AI-assisted threat assessments - all in one place.
+            ThreatLattice is an analyst-grade IOC enrichment platform that correlates indicators across eight intelligence sources in real time, maps findings to MITRE ATT&CK, and generates AI-assisted threat assessments all in one place.
           </p>
         </div>
 
@@ -1476,6 +1476,146 @@ Ask me anything about it - threat associations, related infrastructure, TTPs, ma
         />
         <button onClick={send} disabled={loading || !input.trim()}
           style={{ width: 38, height: 38, borderRadius: 10, background: !input.trim() || loading ? "#1f2937" : "linear-gradient(135deg, #2563EB, #3B82F6)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// - REPORT CHAT BUTTON -lives only on the full report page ---------
+function ReportChatButton({ ioc, iocType }) {
+  const [chatOpen, setChatOpen] = useState(false);
+  return (
+    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9998 }}>
+      {chatOpen && <IOCChat onClose={() => setChatOpen(false)} ioc={ioc} iocType={iocType}/>}
+      <button
+        onClick={() => setChatOpen(x => !x)}
+        title="Ask the IOC Intelligence Assistant"
+        style={{
+          width: 56, height: 56, borderRadius: "50%",
+          background: chatOpen ? "#374151" : "linear-gradient(135deg, #2563EB, #7C3AED)",
+          border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: chatOpen ? "0 4px 20px #00000088" : "0 0 0 3px #3B82F622, 0 8px 28px #3B82F666",
+          transition: "all .2s",
+        }}
+        onMouseEnter={e => { if (!chatOpen) e.currentTarget.style.transform = "scale(1.1)"; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
+      >
+        {chatOpen
+          ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="2.5" strokeLinecap="round"/></svg>
+          : <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+        }
+      </button>
+      {!chatOpen && (
+        <div style={{ position: "absolute", bottom: 64, right: 0, background: "#1f2937", border: "1px solid #374151", borderRadius: 8, padding: "5px 10px", fontSize: 11, color: "#9CA3AF", whiteSpace: "nowrap" }}>
+          Ask AI about {ioc}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// - IOC CHAT ASSISTANT ----------------------------
+// All requests go to /web/chat on the FastAPI backend -no client-side API keys
+
+function IOCChat({ onClose, ioc = "", iocType = "" }) {
+  const welcome = ioc
+    ? `I can see you just analysed **${ioc}** (${iocType.toUpperCase()}).\n\nAsk me anything about it -threat associations, related infrastructure, TTPs, malware family, or recommended response actions.`
+    : "Hi! Ask me anything about the IOC you analysed -threat intel, malware families, CVEs, or response actions.";
+  const [messages, setMessages] = useState([{ role: "assistant", content: welcome }]);
+  const [input,   setInput]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef              = { current: null };
+
+  const send = async () => {
+    const msg = input.trim();
+    if (!msg || loading) return;
+    setInput("");
+    const newMsgs = [...messages, { role: "user", content: msg }];
+    setMessages(newMsgs);
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/web/chat`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ messages: newMsgs }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setMessages(m => [...m, { role: "assistant", content: data.reply }]);
+    } catch (e) {
+      setMessages(m => [...m, { role: "assistant", content: `⚠️ Error: ${e.message}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderMsg = (text) =>
+    text.split("\n").map((line, i) => {
+      if (!line.trim()) return <div key={i} style={{ height: 5 }}/>;
+      if (line.startsWith("# "))  return <div key={i} style={{ fontWeight: 900, color: "#F9FAFB", fontSize: 14, marginTop: 10, marginBottom: 4 }}>{line.slice(2)}</div>;
+      if (line.startsWith("## ")) return <div key={i} style={{ fontWeight: 800, color: "#3B82F6", fontSize: 13, marginTop: 8, marginBottom: 3 }}>{line.slice(3)}</div>;
+      if (line.startsWith("### ")) return <div key={i} style={{ fontWeight: 700, color: "#F9FAFB", fontSize: 12, marginTop: 6, marginBottom: 2 }}>{line.slice(4)}</div>;
+      if (line.startsWith("**") && line.endsWith("**")) return <div key={i} style={{ fontWeight: 800, color: "#F9FAFB", fontSize: 12, marginBottom: 2 }}>{line.slice(2,-2)}</div>;
+      if (line.match(/^[-•*]\s/)) return (
+        <div key={i} style={{ display: "flex", gap: 7, marginBottom: 3, paddingLeft: 4 }}>
+          <span style={{ color: "#3B82F6", flexShrink: 0, marginTop: 1 }}>▸</span>
+          <span style={{ fontSize: 12, color: "#D1D5DB", lineHeight: 1.6 }}>{line.replace(/^[-•*]\s/, "")}</span>
+        </div>
+      );
+      return <div key={i} style={{ fontSize: 12, color: "#C9D1D9", lineHeight: 1.65, marginBottom: 2 }}>{line}</div>;
+    });
+
+  return (
+    <div style={{ position: "fixed", bottom: 90, right: 24, width: 420, height: 560, background: "#111827", border: "1px solid #3B82F633", borderRadius: 18, display: "flex", flexDirection: "column", zIndex: 9999, boxShadow: "0 20px 60px #00000088" }}>
+      <div style={{ padding: "13px 16px", background: "linear-gradient(135deg,#0d1b2e,#111827)", borderBottom: "1px solid #1f2937", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg,#2563EB,#7C3AED)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#F9FAFB" }}>IOC Intelligence Assistant</div>
+            <div style={{ fontSize: 10, color: "#4B5563" }}>Claude · Live Web Search</div>
+          </div>
+        </div>
+        <button onClick={onClose} style={{ background: "none", border: "none", color: "#6B7280", cursor: "pointer", fontSize: 18, padding: "2px 6px", borderRadius: 6 }}>✕</button>
+      </div>
+      <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+            <div style={{
+              maxWidth: "88%", padding: "10px 13px",
+              borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "4px 14px 14px 14px",
+              background: m.role === "user" ? "linear-gradient(135deg,#2563EB,#3B82F6)" : "#1f2937",
+              border: m.role === "user" ? "none" : "1px solid #374151",
+            }}>
+              {m.role === "user"
+                ? <div style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{m.content}</div>
+                : <div>{renderMsg(m.content)}</div>
+              }
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div style={{ display: "flex" }}>
+            <div style={{ padding: "10px 14px", background: "#1f2937", borderRadius: "4px 14px 14px 14px", border: "1px solid #374151", display: "flex", gap: 4, alignItems: "center" }}>
+              {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "#3B82F6", animation: `pulse ${0.4+i*0.15}s ease-in-out infinite alternate` }}/>)}
+            </div>
+          </div>
+        )}
+        <div ref={el => { if (el) el.scrollIntoView({ behavior: "smooth" }); }}/>
+      </div>
+      <div style={{ padding: "11px 13px", borderTop: "1px solid #1f2937", display: "flex", gap: 8 }}>
+        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
+          placeholder="Ask about any IOC, threat, CVE..."
+          style={{ flex: 1, padding: "9px 13px", background: "#1f2937", border: "1px solid #374151", borderRadius: 10, fontSize: 13, color: "#F9FAFB", outline: "none", fontFamily: "monospace" }}
+        />
+        <button onClick={send} disabled={loading || !input.trim()}
+          style={{ width: 38, height: 38, borderRadius: 10, background: !input.trim() || loading ? "#1f2937" : "linear-gradient(135deg,#2563EB,#3B82F6)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
         </button>
       </div>
