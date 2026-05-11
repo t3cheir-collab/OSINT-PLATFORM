@@ -1110,6 +1110,34 @@ function ThreatFeedCard({ item, onAnalyze }) {
   const catColor = catColors[item.category] || "#6B7280";
   const [expanded, setExpanded] = useState(false);
 
+  // Safe fallbacks for potentially null fields
+  const summary = item.summary || "";
+  const tags = item.tags || [];
+  const iocExamples = item.ioc_examples || [];
+
+  const cleanIoc = (val) => {
+    let v = (val || "").trim().replace(/^['"]+|['"]+$/g, "").trim();
+    if (!v || v === "N/A" || v === "n/a" || v === "-") return null;
+    if (v.includes(" ") && !v.startsWith("http")) return null;
+    if (v.length < 4) return null;
+    if (/^\d{1,3}(\.\d{1,3}){3}:\d+$/.test(v)) v = v.split(":")[0];
+    if (/^\d{1,3}(\.\d{1,3}){3}\/\d+$/.test(v)) v = v.split("/")[0];
+    if (v.startsWith("*.")) v = v.slice(2);
+    return v;
+  };
+
+  const detectType = (val) => {
+    const v = (val || "").trim();
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(v))             return "ip";
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v))        return "email";
+    if (/^https?:\/\//.test(v))                          return "url";
+    if (/^[a-fA-F0-9]{32}$/.test(v))                    return "hash";
+    if (/^[a-fA-F0-9]{40}$/.test(v))                    return "hash";
+    if (/^[a-fA-F0-9]{64}$/.test(v))                    return "hash";
+    if (/^[a-zA-Z0-9][a-zA-Z0-9\-\.]{0,253}\.[a-zA-Z]{2,}$/.test(v)) return "domain";
+    return null;
+  };
+
   return (
     <div
       onClick={() => setExpanded(x => !x)}
@@ -1119,19 +1147,19 @@ function ThreatFeedCard({ item, onAnalyze }) {
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
         <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-          <span style={{ padding: "2px 8px", borderRadius: 20, background: catColor + "22", border: `1px solid ${catColor}44`, fontSize: 10, fontWeight: 800, color: catColor, letterSpacing: "0.06em" }}>{item.category}</span>
-          <span style={{ padding: "2px 8px", borderRadius: 20, background: sevColor + "18", border: `1px solid ${sevColor}33`, fontSize: 10, fontWeight: 800, color: sevColor, letterSpacing: "0.06em" }}>{item.severity}</span>
+          <span style={{ padding: "2px 8px", borderRadius: 20, background: catColor + "22", border: `1px solid ${catColor}44`, fontSize: 10, fontWeight: 800, color: catColor, letterSpacing: "0.06em" }}>{item.category || "Unknown"}</span>
+          <span style={{ padding: "2px 8px", borderRadius: 20, background: sevColor + "18", border: `1px solid ${sevColor}33`, fontSize: 10, fontWeight: 800, color: sevColor, letterSpacing: "0.06em" }}>{item.severity || "MEDIUM"}</span>
         </div>
         <span style={{ fontSize: 11, color: "#374151", flexShrink: 0 }}>{expanded ? "▲" : "▼"}</span>
       </div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#F9FAFB", marginBottom: 6, lineHeight: 1.4 }}>{item.title}</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#F9FAFB", marginBottom: 6, lineHeight: 1.4 }}>{item.title || "No title"}</div>
       <div style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.6 }}>
-        {expanded ? item.summary : item.summary?.slice(0, 110) + (item.summary?.length > 110 ? "…" : "")}
+        {expanded ? summary : summary.slice(0, 110) + (summary.length > 110 ? "…" : "")}
       </div>
       {expanded && (
         <div style={{ marginTop: 12 }}>
           {(() => {
-            const analysable = (item.ioc_examples || []).filter(Boolean).map(ioc => {
+            const analysable = iocExamples.filter(Boolean).map(ioc => {
               const c = cleanIoc(ioc);
               const t = c ? detectType(c) : null;
               return c && t ? { raw: ioc, clean: c, type: t } : null;
@@ -1140,7 +1168,7 @@ function ThreatFeedCard({ item, onAnalyze }) {
             const typeColors = { ip:"#3B82F6", domain:"#10B981", url:"#F43F5E", hash:"#F59E0B", email:"#A78BFA" };
             return (
               <div style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: "#4B5563", letterSpacing: "0.08em", marginBottom: 6 }}>EXAMPLE IOCs click to analyse</div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: "#4B5563", letterSpacing: "0.08em", marginBottom: 6 }}>EXAMPLE IOCs — click to analyse</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {analysable.map(({ clean, type }, i) => (
                     <button key={i} onClick={e => { e.stopPropagation(); onAnalyze(clean); }}
@@ -1153,9 +1181,9 @@ function ThreatFeedCard({ item, onAnalyze }) {
               </div>
             );
           })()}
-          {item.tags?.length > 0 && (
+          {tags.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 8 }}>
-              {item.tags.map(t => <span key={t} style={{ padding: "2px 8px", background: "#1f2937", borderRadius: 20, fontSize: 10, color: "#6B7280" }}>#{t}</span>)}
+              {tags.map(t => <span key={t} style={{ padding: "2px 8px", background: "#1f2937", borderRadius: 20, fontSize: 10, color: "#6B7280" }}>#{t}</span>)}
             </div>
           )}
           {item.source_url
